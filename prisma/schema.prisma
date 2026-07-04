@@ -1,0 +1,203 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// TENANT (Multi-tenancy)
+// ============================================================
+
+model Tenant {
+  id        Int              @id @default(autoincrement())
+  name      String
+  slug      String           @unique
+  createdAt DateTime         @default(now())
+  users     User[]
+  dataSources DataSource[]
+  pipelines   Pipeline[]
+  lakehouseTables LakehouseTable[]
+  dashboards  Dashboard[]
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+
+model User {
+  id           Int            @id @default(autoincrement())
+  email        String         @unique
+  name         String
+  role         String         @default("ANALYST")
+  password     String
+  tenantId     Int?
+  tenant       Tenant?        @relation(fields: [tenantId], references: [id])
+  dataSources  DataSource[]
+  pipelines    Pipeline[]
+  dashboards   Dashboard[]
+  apiConnectors ApiConnector[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+// ============================================================
+// DATA SOURCES
+// ============================================================
+
+model DataSource {
+  id          Int        @id @default(autoincrement())
+  userId      Int
+  user        User       @relation(fields: [userId], references: [id])
+  tenantId    Int?
+  tenant      Tenant?    @relation(fields: [tenantId], references: [id])
+  name        String
+  type        String     // CSV | EXCEL | JSON | API | DATABASE
+  config      String     @default("{}") // JSON config
+  fileName    String?
+  fileSize    Int?
+  filePath    String?
+  status      String     @default("ACTIVE") // ACTIVE | ERROR | ARCHIVED
+  rowsCount   Int?
+  columnsCount Int?
+  lastSyncAt  DateTime?
+  pipelines   Pipeline[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// ============================================================
+// ETL PIPELINES
+// ============================================================
+
+model Pipeline {
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  user        User          @relation(fields: [userId], references: [id])
+  sourceId    Int?
+  source      DataSource?   @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  tenantId    Int?
+  tenant      Tenant?       @relation(fields: [tenantId], references: [id])
+  name        String
+  description String?
+  steps       PipelineStep[]
+  schedule    String?       // cron expression
+  status      String        @default("DRAFT") // DRAFT | ACTIVE | PAUSED
+  runs        PipelineRun[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model PipelineStep {
+  id         Int      @id @default(autoincrement())
+  pipelineId Int
+  pipeline   Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  order      Int
+  type       String   // SOURCE | CLEAN | VALIDATE | TRANSFORM | JOIN | FILTER | AGGREGATE | OUTPUT
+  config     String   @default("{}") // JSON config
+  inputLayer  String? // SILVER | BRONZE | GOLD
+  outputLayer String? // SILVER | BRONZE | GOLD
+  outputTable String?
+  positionX  Float    @default(0)
+  positionY  Float    @default(0)
+}
+
+model PipelineRun {
+  id           Int       @id @default(autoincrement())
+  pipelineId   Int
+  pipeline     Pipeline  @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  status       String    @default("PENDING") // PENDING | RUNNING | SUCCESS | FAILED
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  duration     Int?
+  rowsInput    Int?
+  rowsOutput   Int?
+  errorMessage String?
+  logs         String?
+  createdAt    DateTime  @default(now())
+}
+
+// ============================================================
+// LAKEHOUSE TABLES (metadata)
+// ============================================================
+
+model LakehouseTable {
+  id           Int      @id @default(autoincrement())
+  tenantId     Int?
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id])
+  layer        String   // SILVER | BRONZE | GOLD
+  tableName    String
+  displayName  String
+  description  String?
+  schema       String   // JSON: column definitions
+  rowsCount    Int      @default(0)
+  sizeBytes    Int      @default(0)
+  sourceId     Int?
+  pipelineId   Int?
+  isSystem     Boolean  @default(false) // system-generated vs user-created
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([layer, tableName])
+}
+
+// ============================================================
+// DASHBOARDS
+// ============================================================
+
+model Dashboard {
+  id        Int            @id @default(autoincrement())
+  userId    Int
+  user      User           @relation(fields: [userId], references: [id])
+  tenantId  Int?
+  tenant    Tenant?        @relation(fields: [tenantId], references: [id])
+  name      String
+  description String?
+  isPublic  Boolean        @default(false)
+  shareToken String?       @unique
+  layout    String         @default("[]") // JSON: react-grid-layout config
+  metabaseId Int?         // Linked Metabase dashboard ID
+  metabaseUrl String?     // Metabase embed/signed URL
+  sourceTable String?     // Gold table name that generated this
+  sourceLayer String?     // bronze | silver | gold
+  widgets   DashboardWidget[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model DashboardWidget {
+  id           Int       @id @default(autoincrement())
+  dashboardId  Int
+  dashboard    Dashboard @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  type         String    // LINE | BAR | PIE | AREA | KPI | TABLE | TEXT
+  title        String
+  config       String    @default("{}") // JSON: { dataSource, xField, yField, filters, colors }
+  gridX        Int       @default(0)
+  gridY        Int       @default(0)
+  gridW        Int       @default(4)
+  gridH        Int       @default(3)
+  refreshInterval Int?   // seconds, null = manual only
+  createdAt    DateTime  @default(now())
+}
+
+// ============================================================
+// API CONNECTORS
+// ============================================================
+
+model ApiConnector {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  method    String   @default("GET") // GET | POST | PUT
+  url       String
+  headers   String?  // JSON
+  body      String?  // JSON
+  schedule  String?  // cron
+  lastStatus String?
+  lastRunAt DateTime?
+  createdAt DateTime @default(now())
+}
