@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { authFetch } from "@/lib/auth-client";
 
@@ -14,6 +15,8 @@ export default function LakehouseDeleteButton({
   displayName: string;
   onDeleted?: (tableName: string) => void;
 }) {
+  const router = useRouter();
+
   async function handleDelete(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
@@ -22,6 +25,7 @@ export default function LakehouseDeleteButton({
       const res = await authFetch(`/api/lakehouse/${layer.toLowerCase()}/${tableName}`, { method: "DELETE" });
       if (res.ok) {
         onDeleted?.(tableName);
+        router.refresh();
       } else {
         const data = await res.json().catch(() => ({}));
         alert(data.error || "Gagal menghapus tabel");
