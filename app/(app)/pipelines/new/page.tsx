@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { v4 as randomId } from "uuid";
 import { authFetch } from "@/lib/auth-client";
+import { Fingerprint, Regex, ListChecks, Plus, X } from "lucide-react";
 
 // ──────────────────────────────────────────────
 // Types
@@ -181,6 +182,255 @@ interface SimpleSource {
 // Config Panel per step type
 // ──────────────────────────────────────────────
 
+const RULE_TYPES = [
+  { value: "NOT_NULL", label: "NOT NULL — check for missing values" },
+  { value: "UNIQUE", label: "UNIQUE — check for duplicate values" },
+  { value: "COMPARE", label: "COMPARE — compare two columns" },
+  { value: "NUMBER", label: "NUMBER — validate numeric range" },
+  { value: "DATE", label: "DATE — validate date format" },
+  { value: "REGEX", label: "REGEX — validate against pattern" },
+  { value: "ENUM", label: "ENUM — check against allowed values" },
+] as const;
+
+function ValidateRules({
+  rules,
+  onChange,
+  mode,
+  onModeChange,
+}: {
+  rules: string;
+  onChange: (v: string) => void;
+  mode: string;
+  onModeChange: (v: string) => void;
+}) {
+  const [builderType, setBuilderType] = useState("UNIQUE");
+  const [builderColumn, setBuilderColumn] = useState("");
+  const [builderPattern, setBuilderPattern] = useState("");
+  const [builderValues, setBuilderValues] = useState("");
+  const [builderTolerance, setBuilderTolerance] = useState("0");
+  const [builderMin, setBuilderMin] = useState("");
+  const [builderMax, setBuilderMax] = useState("");
+  const [builderDateFormat, setBuilderDateFormat] = useState("YYYY-MM-DD");
+  const [builderCol1, setBuilderCol1] = useState("");
+  const [builderCol2, setBuilderCol2] = useState("");
+  const [builderError, setBuilderError] = useState("");
+
+  const addRule = () => {
+    setBuilderError("");
+    if (!builderColumn.trim()) {
+      setBuilderError("Column name is required");
+      return;
+    }
+    let ruleLine = "";
+    switch (builderType) {
+      case "NOT_NULL":
+        ruleLine = `NOT_NULL:${builderColumn.trim()}`;
+        break;
+      case "UNIQUE":
+        ruleLine = `UNIQUE:${builderColumn.trim()}`;
+        break;
+      case "COMPARE":
+        if (!builderCol1.trim() || !builderCol2.trim()) {
+          setBuilderError("Both columns are required for COMPARE");
+          return;
+        }
+        ruleLine = `COMPARE:${builderCol1.trim()},${builderCol2.trim()},${builderTolerance || "0"}`;
+        break;
+      case "NUMBER":
+        ruleLine = `NUMBER:${builderColumn.trim()}`;
+        if (builderMin) ruleLine += `,min=${builderMin}`;
+        if (builderMax) ruleLine += `,max=${builderMax}`;
+        break;
+      case "DATE":
+        ruleLine = `DATE:${builderColumn.trim()},format=${builderDateFormat || "YYYY-MM-DD"}`;
+        break;
+      case "REGEX":
+        if (!builderPattern.trim()) {
+          setBuilderError("Regex pattern is required");
+          return;
+        }
+        ruleLine = `REGEX:${builderColumn.trim()},pattern=${builderPattern.trim()}`;
+        break;
+      case "ENUM":
+        if (!builderValues.trim()) {
+          setBuilderError("Enum values are required");
+          return;
+        }
+        ruleLine = `ENUM:${builderColumn.trim()},values=${builderValues.trim()}`;
+        break;
+    }
+    const updated = rules ? rules + "\n" + ruleLine : ruleLine;
+    onChange(updated);
+    // Reset form
+    setBuilderColumn("");
+    setBuilderPattern("");
+    setBuilderValues("");
+    setBuilderCol1("");
+    setBuilderCol2("");
+    setBuilderTolerance("0");
+    setBuilderMin("");
+    setBuilderMax("");
+  };
+
+  return (
+    <div className="space-y-3">
+      <Field label="Validation Rules" helper="One rule per line. Supported: NOT_NULL, UNIQUE, COMPARE, NUMBER, DATE, REGEX, ENUM">
+        <textarea
+          value={rules}
+          onChange={(e) => onChange(e.target.value)}
+          rows={6}
+          placeholder={"NOT_NULL:Bank_Ref\nUNIQUE:Transaction_ID\nCOMPARE:SAP_Amount,Bank_Amount,0\nNUMBER:Difference,min=0\nDATE:Transaction_Date\nREGEX:Code,pattern=^[A-Z]{3}-\\\\d+$\nENUM:Status,values=ACTIVE,INACTIVE,PENDING"}
+          className="input resize-none"
+        />
+      </Field>
+
+      {/* Rule Builder */}
+      <div
+        style={{
+          background: "rgba(212,168,83,0.04)",
+          border: "1px solid rgba(212,168,83,0.12)",
+          borderRadius: "8px",
+          padding: "12px",
+        }}
+        className="space-y-3"
+      >
+        <label style={{ color: "#8a8578" }} className="block text-xs font-medium flex items-center gap-2">
+          <Plus size={14} /> Rule Builder
+        </label>
+
+        {/* Rule type selector */}
+        <div className="space-y-1.5">
+          <label style={{ color: "#6b6760" }} className="block text-[10px]">Rule Type</label>
+          <select
+            value={builderType}
+            onChange={(e) => setBuilderType(e.target.value)}
+            className="input"
+          >
+            {RULE_TYPES.map((rt) => (
+              <option key={rt.value} value={rt.value}>{rt.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Column inputs */}
+        {builderType === "COMPARE" ? (
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1.5">
+              <label style={{ color: "#6b6760" }} className="block text-[10px]">Column 1</label>
+              <input value={builderCol1} onChange={(e) => setBuilderCol1(e.target.value)} placeholder="col_name" className="input" />
+            </div>
+            <div className="space-y-1.5">
+              <label style={{ color: "#6b6760" }} className="block text-[10px]">Column 2</label>
+              <input value={builderCol2} onChange={(e) => setBuilderCol2(e.target.value)} placeholder="col_name" className="input" />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-1.5">
+            <label style={{ color: "#6b6760" }} className="block text-[10px]">Column Name</label>
+            <input
+              value={builderColumn}
+              onChange={(e) => setBuilderColumn(e.target.value)}
+              placeholder="column_name"
+              className="input"
+            />
+          </div>
+        )}
+
+        {/* Type-specific inputs */}
+        {builderType === "NUMBER" && (
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1.5">
+              <label style={{ color: "#6b6760" }} className="block text-[10px]">Min (optional)</label>
+              <input value={builderMin} onChange={(e) => setBuilderMin(e.target.value)} placeholder="0" className="input" />
+            </div>
+            <div className="space-y-1.5">
+              <label style={{ color: "#6b6760" }} className="block text-[10px]">Max (optional)</label>
+              <input value={builderMax} onChange={(e) => setBuilderMax(e.target.value)} placeholder="999" className="input" />
+            </div>
+          </div>
+        )}
+        {builderType === "COMPARE" && (
+          <div className="space-y-1.5">
+            <label style={{ color: "#6b6760" }} className="block text-[10px]">Tolerance</label>
+            <input value={builderTolerance} onChange={(e) => setBuilderTolerance(e.target.value)} placeholder="0" className="input" />
+          </div>
+        )}
+        {builderType === "DATE" && (
+          <div className="space-y-1.5">
+            <label style={{ color: "#6b6760" }} className="block text-[10px]">Date Format</label>
+            <input value={builderDateFormat} onChange={(e) => setBuilderDateFormat(e.target.value)} placeholder="YYYY-MM-DD" className="input" />
+          </div>
+        )}
+        {builderType === "REGEX" && (
+          <div className="space-y-1.5">
+            <label style={{ color: "#6b6760" }} className="block text-[10px] flex items-center gap-1.5">
+              <Regex size={12} /> Regex Pattern
+            </label>
+            <input
+              value={builderPattern}
+              onChange={(e) => setBuilderPattern(e.target.value)}
+              placeholder="^[A-Z]{3}-\\d+$"
+              className="input"
+            />
+          </div>
+        )}
+        {builderType === "ENUM" && (
+          <div className="space-y-1.5">
+            <label style={{ color: "#6b6760" }} className="block text-[10px] flex items-center gap-1.5">
+              <ListChecks size={12} /> Allowed Values
+            </label>
+            <input
+              value={builderValues}
+              onChange={(e) => setBuilderValues(e.target.value)}
+              placeholder="ACTIVE,INACTIVE,PENDING"
+              className="input"
+            />
+            <p style={{ color: "#6b6760" }} className="text-[10px]">Comma-separated, case-insensitive</p>
+          </div>
+        )}
+
+        {/* Error */}
+        {builderError && (
+          <p className="text-xs text-red-400 flex items-center gap-1">
+            <X size={12} /> {builderError}
+          </p>
+        )}
+
+        {/* Add button */}
+        <button
+          onClick={addRule}
+          style={{
+            background: "rgba(212,168,83,0.12)",
+            border: "1px solid rgba(212,168,83,0.25)",
+            borderRadius: "6px",
+            color: "#D4A853",
+            fontSize: "12px",
+            padding: "6px 14px",
+            cursor: "pointer",
+            transition: "all 0.15s",
+          }}
+          className="hover:bg-[rgba(212,168,83,0.2)]"
+        >
+          <span className="flex items-center gap-1.5">
+            <Plus size={14} /> Add Rule
+          </span>
+        </button>
+      </div>
+
+      <Field label="Mode">
+        <select
+          value={mode}
+          onChange={(e) => onModeChange(e.target.value)}
+          className="input"
+        >
+          <option value="flag">Flag — add _validation_issues column</option>
+          <option value="drop">Drop — remove invalid rows</option>
+        </select>
+      </Field>
+    </div>
+  );
+}
+
 function ConfigPanel({
   node,
   config,
@@ -247,27 +497,12 @@ function ConfigPanel({
 
       {/* ── VALIDATE ── */}
       {node.type === "VALIDATE" && (
-        <div className="space-y-3">
-          <Field label="Validation Rules" helper="One rule per line. Supported: NOT_NULL, COMPARE, NUMBER, DATE">
-            <textarea
-              value={config.validationRules ?? ""}
-              onChange={(e) => set("validationRules", e.target.value)}
-              rows={6}
-              placeholder={"NOT_NULL:Bank_Ref\nCOMPARE:SAP_Amount,Bank_Amount,0\nNUMBER:Difference,min=0\nDATE:Transaction_Date"}
-              className="input resize-none"
-            />
-          </Field>
-          <Field label="Mode">
-            <select
-              value={config.validationMode ?? "flag"}
-              onChange={(e) => set("validationMode", e.target.value)}
-              className="input"
-            >
-              <option value="flag">🏷️ Flag — add _validation_issues column</option>
-              <option value="drop">🗑️ Drop — remove invalid rows</option>
-            </select>
-          </Field>
-        </div>
+        <ValidateRules
+          rules={(config.validationRules as string) ?? ""}
+          onChange={(v) => set("validationRules", v)}
+          mode={(config.validationMode as string) ?? "flag"}
+          onModeChange={(v) => set("validationMode", v)}
+        />
       )}
 
       {/* ── TRANSFORM ── */}

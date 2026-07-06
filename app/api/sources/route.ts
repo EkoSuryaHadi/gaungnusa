@@ -5,6 +5,7 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { parse } from "csv-parse/sync";
 import * as XLSX from "xlsx";
+import { randomBytes } from "crypto";
 
 export async function GET() {
   const session = await getSession();
@@ -21,10 +22,216 @@ export async function GET() {
   return NextResponse.json(sources);
 }
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function generateWebhookSecret(): string {
+  return `whsec_${randomBytes(32).toString("hex")}`;
+}
+
+function getWebhookUrl(sourceId: number): string {
+  const domain = process.env.WEBHOOK_DOMAIN || "ekosuryahadi.web.id";
+  return `https://${domain}/api/webhook/${sourceId}`;
+}
+
+// ---------------------------------------------------------------------------
+// POST — dispatcher: JSON body for DATABASE/API/WEBHOOK, multipart for files
+// ---------------------------------------------------------------------------
+
 export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const contentType = req.headers.get("content-type") || "";
+
+  // ── JSON body: DATABASE / API / WEBHOOK sources ──
+  if (contentType.includes("application/json")) {
+    return handleJsonSource(req, session);
+  }
+
+  // ── Multipart body: file upload (CSV / Excel) ──
+  return handleFileUpload(req, session);
+}
+
+// ============================================================
+// JSON Source Handler — DATABASE, API, WEBHOOK
+// ============================================================
+
+async function handleJsonSource(req: NextRequest, session: any) {
+  try {
+    const body = await req.json();
+    const { type, name, config } = body;
+
+    if (!type || !name) {
+      return NextResponse.json(
+        { error: "Type and name are required" },
+        { status: 400 }
+      );
+    }
+
+    // ── DATABASE connector ──
+    if (type === "DATABASE") {
+      return handleDatabaseSource(config, name, session);
+    }
+
+    // ── API connector ──
+    if (type === "API") {
+      return handleApiSource(config, name, session);
+    }
+
+    // ── WEBHOOK connector ──
+    if (type === "WEBHOOK") {
+      return handleWebhookSource(config, name, session);
+    }
+
+    return NextResponse.json(
+      { error: `Unsupported source type: ${type}. Use 'DATABASE', 'API', or 'WEBHOOK'.` },
+      { status: 400 }
+    );
+  } catch (error: any) {
+    console.error("JSON source creation error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// ============================================================
+// DATABASE Handler
+// ============================================================
+
+async function handleDatabaseSource(config: any, name: string, session: any) {
+  if (!config) {
+    return NextResponse.json(
+      { error: "Config is required" },
+      { status: 400 }
+    );
+  }
+
+  const { dbType, host, port, database, username, password, sqlQuery, schedule } = config;
+
+  if (!dbType || !host || !database || !username) {
+    return NextResponse.json(
+      { error: "dbType, host, database, and username are required" },
+      { status: 400 }
+    );
+  }
+
+  const safeConfig: Record<string, any> = {
+    dbType: (dbType || "POSTGRESQL").toUpperCase(),
+    host: String(host),
+    port: Number(port) || (dbType === "MYSQL" ? 3306 : 5432),
+    database: String(database),
+    username: String(username),
+    password: password || "",
+    encrypted: false,
+  };
+
+  if (sqlQuery) {
+    safeConfig.sqlQuery = String(sqlQuery);
+  }
+
+  if (schedule) {
+    safeConfig.schedule = String(schedule);
+  }
+
+  const source = await prisma.dataSource.create({
+    data: {
+      userId: session.userId,
+      tenantId: session.tenantId ?? null,
+      name: String(name),
+      type: "DATABASE",
+      config: JSON.stringify(safeConfig),
+      status: "ACTIVE",
+    },
+  });
+
+  return NextResponse.json(source, { status: 201 });
+}
+
+// ============================================================
+// API Handler
+// ============================================================
+
+async function handleApiSource(config: any, name: string, session: any) {
+  const finalConfig = {
+    url: (config?.url || "").trim(),
+    method: (config?.method || "GET").toUpperCase(),
+    headers: config?.headers || {},
+    auth: config?.auth || { type: "none" },
+  };
+
+  if (!finalConfig.url) {
+    return NextResponse.json(
+      { error: "URL is required for API sources" },
+      { status: 400 }
+    );
+  }
+
+  const source = await prisma.dataSource.create({
+    data: {
+      userId: session.userId,
+      tenantId: session.tenantId ?? null,
+      name: name.trim(),
+      type: "API",
+      config: JSON.stringify(finalConfig),
+      status: "ACTIVE",
+    },
+  });
+
+  return NextResponse.json(source, { status: 201 });
+}
+
+// ============================================================
+// WEBHOOK Handler
+// ============================================================
+
+async function handleWebhookSource(config: any, name: string, session: any) {
+  // Create source first to get an ID
+  const source = await prisma.dataSource.create({
+    data: {
+      userId: session.userId,
+      tenantId: session.tenantId ?? null,
+      name: name.trim(),
+      type: "WEBHOOK",
+      config: JSON.stringify({}),
+      status: "ACTIVE",
+    },
+  });
+
+  // Generate secret and URL using the source ID
+  const webhookSecret = generateWebhookSecret();
+  const webhookUrl = getWebhookUrl(source.id);
+
+  const finalConfig = {
+    webhookSecret,
+    webhookUrl,
+    ...(config || {}),
+  };
+
+  // Update source with webhook config
+  await prisma.dataSource.update({
+    where: { id: source.id },
+    data: {
+      config: JSON.stringify(finalConfig),
+    },
+  });
+
+  return NextResponse.json(
+    {
+      ...source,
+      config: JSON.stringify(finalConfig),
+      webhookSecret,
+      webhookUrl,
+    },
+    { status: 201 }
+  );
+}
+
+// ============================================================
+// File Upload Handler (CSV / Excel)
+// ============================================================
+
+async function handleFileUpload(req: NextRequest, session: any) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;

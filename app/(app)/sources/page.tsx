@@ -11,6 +11,7 @@ import {
   Clock,
   Eye,
   Zap,
+  Database,
 } from "lucide-react";
 import DeleteSourceButton from "./delete-button";
 import { authFetch, clearAuth } from "@/lib/auth-client";
@@ -269,6 +270,10 @@ export default function SourcesPage() {
           >
             <RefreshCw size={16} />
           </button>
+          <Link href="/sources/new/database" className="btn btn-secondary">
+            <Database size={16} />
+            Connect DB
+          </Link>
           <Link href="/sources/new" className="btn btn-primary">
             <Upload size={16} />
             Upload New
@@ -293,6 +298,14 @@ export default function SourcesPage() {
           >
             Upload CSV atau connect API
           </p>
+          <Link
+            href="/sources/new/database"
+            className="btn btn-secondary"
+            style={{ position: "relative" }}
+          >
+            <Database size={16} />
+            Connect Database
+          </Link>
           <Link
             href="/sources/new"
             className="btn btn-primary"

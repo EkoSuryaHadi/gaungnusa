@@ -149,13 +149,16 @@ def step_clean(df: pd.DataFrame, config: dict) -> pd.DataFrame:
 
 
 def step_validate(df: pd.DataFrame, config: dict) -> pd.DataFrame:
-    """Validate data: NOT_NULL, COMPARE, NUMBER range, DATE format.
+    """Validate data: NOT_NULL, COMPARE, NUMBER range, DATE format, UNIQUE, REGEX, ENUM.
     
     Rules format (from frontend string or JSON array):
       NOT_NULL:Bank_Ref
       COMPARE:SAP_Amount,Bank_Amount,0
       NUMBER:Amount,min=0
       DATE:Transaction_Date,format=YYYY-MM-DD
+      UNIQUE:Transaction_ID
+      REGEX:Code,pattern=^[A-Z]{3}-\\d+$
+      ENUM:Status,values=ACTIVE,INACTIVE,PENDING
     
     Mode: "flag" (default) — adds _validation_issues column
           "drop" — removes failing rows
@@ -188,6 +191,21 @@ def step_validate(df: pd.DataFrame, config: dict) -> pd.DataFrame:
                 parsed_rules.append(r)
             elif rule_type.upper() == "DATE" and rule_parts:
                 parsed_rules.append({"type": "DATE", "column": rule_parts[0], "format": rule_parts[1] if len(rule_parts) > 1 else None})
+            elif rule_type.upper() == "UNIQUE" and params.strip():
+                parsed_rules.append({"type": "UNIQUE", "column": params.strip()})
+            elif rule_type.upper() == "REGEX" and "," in params:
+                col, rest = params.split(",", 1)
+                pattern = ""
+                if "pattern=" in rest:
+                    pattern = rest.split("pattern=", 1)[1].strip()
+                parsed_rules.append({"type": "REGEX", "column": col.strip(), "pattern": pattern})
+            elif rule_type.upper() == "ENUM" and "," in params:
+                col, rest = params.split(",", 1)
+                values_str = ""
+                if "values=" in rest:
+                    values_str = rest.split("values=", 1)[1].strip()
+                values = [v.strip() for v in values_str.split(",") if v.strip()]
+                parsed_rules.append({"type": "ENUM", "column": col.strip(), "values": values})
     elif isinstance(rules_raw, list):
         parsed_rules = rules_raw
     
@@ -255,6 +273,60 @@ def step_validate(df: pd.DataFrame, config: dict) -> pd.DataFrame:
                 nulls = result[col].isna().sum()
                 if nulls:
                     print(f"[VALIDATE] {nulls} rows with invalid date in '{col}'")
+
+        elif rule_type == "UNIQUE":
+            col = rule.get("column", "")
+            if col in result.columns:
+                dup_mask = result[col].duplicated(keep=False)
+                count = dup_mask.sum()
+                if count > 0:
+                    if mode == "drop":
+                        drop_mask |= result[col].duplicated(keep="first")
+                    else:
+                        for idx in result[dup_mask].index:
+                            issues[idx].append(f"Duplicate {col}: '{result.at[idx, col]}'")
+                    print(f"[VALIDATE] {count} duplicate rows in '{col}' {'dropped' if mode=='drop' else 'flagged'}")
+
+        elif rule_type == "REGEX":
+            col = rule.get("column", "")
+            pattern = rule.get("pattern", "")
+            if col in result.columns:
+                import re
+                try:
+                    regex = re.compile(pattern)
+                    str_col = result[col].astype(str)
+                    invalid_mask = ~str_col.apply(lambda x: bool(regex.match(str(x))))
+                except re.error as e:
+                    print(f"[VALIDATE] Invalid regex pattern '{pattern}': {e}, flagging all rows")
+                    invalid_mask = pd.Series(True, index=result.index)
+
+                count = invalid_mask.sum()
+                if count > 0:
+                    if mode == "drop":
+                        drop_mask |= invalid_mask
+                    else:
+                        for idx in result[invalid_mask].index:
+                            issues[idx].append(f"Regex mismatch {col} (pattern: {pattern})")
+                    print(f"[VALIDATE] {count} rows failed regex '{pattern}' on '{col}' {'dropped' if mode=='drop' else 'flagged'}")
+
+        elif rule_type == "ENUM":
+            col = rule.get("column", "")
+            values = rule.get("values", [])
+            if col in result.columns and values:
+                allowed = [v.strip().upper() for v in values]
+                str_col = result[col].astype(str).str.upper()
+                invalid_mask = ~str_col.isin(allowed)
+                # Treat NaN as invalid too
+                nan_mask = result[col].isna()
+                invalid_mask = invalid_mask | nan_mask
+                count = invalid_mask.sum()
+                if count > 0:
+                    if mode == "drop":
+                        drop_mask |= invalid_mask
+                    else:
+                        for idx in result[invalid_mask].index:
+                            issues[idx].append(f"Invalid enum {col}: '{result.at[idx, col]}' (allowed: {', '.join(values)})")
+                    print(f"[VALIDATE] {count} rows with invalid enum in '{col}' {'dropped' if mode=='drop' else 'flagged'}")
 
     # Apply mode
     if mode == "drop":
@@ -600,8 +672,16 @@ def run_pipeline(config_path: str) -> dict:
     with open(config_path) as f:
         pipeline = json.load(f)
 
+    run_id = pipeline.get("runId", 0)
+
+    # Import WS reporter lazily (optional)
+    try:
+        from ws_reporter import report as ws_report
+    except ImportError:
+        ws_report = None
+
     print(f"=== Gaung ETL Worker ===")
-    print(f"Pipeline: {pipeline.get('pipelineId')}, Run: {pipeline.get('runId')}")
+    print(f"Pipeline: {pipeline.get('pipelineId')}, Run: {run_id}")
 
     source_data = pipeline.get("source", {})
     steps = sorted(pipeline.get("steps", []), key=lambda s: s["order"])
@@ -611,11 +691,25 @@ def run_pipeline(config_path: str) -> dict:
     column_metadata: list[dict] = []
     outputs: list[dict] = []  # metadata for each OUTPUT step
 
+    total_steps = len(steps)
+
     for i, step in enumerate(steps):
         step_type = step.get("type", "UNKNOWN")
         config = step.get("config", {})
 
-        print(f"\n--- Step {i+1}/{len(steps)}: {step_type} ---")
+        print(f"\n--- Step {i+1}/{total_steps}: {step_type} ---")
+
+        # Report progress via WebSocket
+        if ws_report:
+            try:
+                ws_report(run_id, "step_start", {
+                    "step": i + 1,
+                    "total": total_steps,
+                    "type": step_type,
+                    "progress": round((i / total_steps) * 100),
+                })
+            except Exception:
+                pass
 
         if step_type == "SOURCE":
             df = step_source(None, config, source_data)
@@ -648,6 +742,17 @@ def run_pipeline(config_path: str) -> dict:
                 df = handler(df, config)
             else:
                 print(f"[{step_type}] Unknown step type, skipping")
+
+    # Report completion via WebSocket
+    if ws_report:
+        try:
+            ws_report(run_id, "complete", {
+                "rows": rows_output,
+                "outputs": outputs,
+                "progress": 100,
+            })
+        except Exception:
+            pass
 
     print(f"\n=== Pipeline Complete === rows={rows_output}")
     return {"rows": rows_output, "columns": column_metadata, "outputs": outputs}
