@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Pencil, BarChart3 } from "lucide-react";
+import { ArrowLeft, Pencil, BarChart3, Share2, Download, Copy, Check, X } from "lucide-react";
 import {
   PieChart as RePie, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -29,6 +29,8 @@ interface Dashboard {
   name: string;
   description: string | null;
   widgets: Widget[];
+  shareToken?: string | null;
+  isPublic?: boolean;
 }
 
 // ── Helpers ──
@@ -667,6 +669,27 @@ export default function DashboardViewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [widgetData, setWidgetData] = useState<Record<number, { rows: unknown[] }>>({});
+  const [shareState, setShareState] = useState<{ loading: boolean; shared: boolean; url: string | null; copied: boolean }>({ loading: true, shared: false, url: null, copied: false });
+
+  function handleShare() {
+    setShareState(prev => ({ ...prev, loading: true }));
+    authFetch(`/api/dashboards/${params.id}/share`, { method: "POST" })
+      .then(r => r.json())
+      .then(data => setShareState({ loading: false, shared: data.shared, url: data.shareUrl || null, copied: false }))
+      .catch(() => setShareState(prev => ({ ...prev, loading: false })));
+  }
+
+  function handleCopyLink() {
+    if (shareState.url) {
+      navigator.clipboard.writeText(window.location.origin + shareState.url);
+      setShareState(prev => ({ ...prev, copied: true }));
+      setTimeout(() => setShareState(prev => ({ ...prev, copied: false })), 2000);
+    }
+  }
+
+  function handleExport() {
+    window.open(`/api/dashboards/${params.id}/export`, "_blank");
+  }
 
   async function loadWidgetData(d: Dashboard) {
     const data: Record<number, { rows: unknown[] }> = {};
@@ -768,6 +791,7 @@ export default function DashboardViewPage() {
         const d = await r.json();
         if (d && d.name) {
           setDashboard(d);
+          setShareState({ loading: false, shared: !!d.isPublic || !!d.shareToken, url: d.shareToken ? `/share/${d.shareToken}` : null, copied: false });
           await loadWidgetData(d);
         } else {
           setError("Dashboard not found");
@@ -845,13 +869,55 @@ export default function DashboardViewPage() {
             )}
           </div>
 
-          <Link
-            href={`/dashboards/new?edit=${dashboard.id}`}
-            className="btn btn-secondary"
-          >
-            <Pencil size={15} />
-            Edit
-          </Link>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Link
+              href={`/dashboards/new?edit=${dashboard.id}`}
+              className="btn btn-secondary"
+            >
+              <Pencil size={15} />
+              Edit
+            </Link>
+
+            {/* Share Button */}
+            <button
+              onClick={handleShare}
+              disabled={shareState.loading}
+              className={shareState.shared ? "btn btn-primary" : "btn btn-secondary"}
+              style={{ opacity: shareState.loading ? 0.6 : 1 }}
+              title={shareState.shared ? "Unshare" : "Share"}
+            >
+              {shareState.loading ? (
+                <div className="skeleton" style={{ width: 14, height: 14, borderRadius: "50%" }} />
+              ) : shareState.shared ? (
+                <X size={14} />
+              ) : (
+                <Share2 size={14} />
+              )}
+              {shareState.loading ? "..." : shareState.shared ? "Unshare" : "Share"}
+            </button>
+
+            {/* Copy Link (only when shared) */}
+            {shareState.shared && shareState.url && (
+              <button
+                onClick={handleCopyLink}
+                className="btn btn-secondary"
+                title="Copy share link"
+              >
+                {shareState.copied ? <Check size={14} /> : <Copy size={14} />}
+                {shareState.copied ? "Copied!" : "Copy Link"}
+              </button>
+            )}
+
+            {/* Export CSV */}
+            <button
+              onClick={handleExport}
+              className="btn btn-secondary"
+              title="Export CSV"
+            >
+              <Download size={14} />
+              Export
+            </button>
+          </div>
         </div>
 
         {/* Divider */}
