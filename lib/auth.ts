@@ -64,12 +64,7 @@ export async function setSession(data: SessionData): Promise<void> {
  * Extract token from: cookie (priority) OR Authorization: Bearer header (fallback)
  */
 async function getToken(): Promise<string | null> {
-  // 1. Try cookie first
-  const c = await cookies();
-  const cookie = c.get(COOKIE_NAME);
-  if (cookie?.value) return cookie.value;
-
-  // 2. Try Authorization header (for client-side fetch with localStorage token)
+  // 1. Try Authorization header first (explicit, set by authFetch)
   try {
     const h = await headers();
     const authHeader = h.get("authorization");
@@ -79,6 +74,11 @@ async function getToken(): Promise<string | null> {
   } catch {
     // headers() might throw in some contexts
   }
+
+  // 2. Fallback to cookie
+  const c = await cookies();
+  const cookie = c.get(COOKIE_NAME);
+  if (cookie?.value) return cookie.value;
 
   return null;
 }
