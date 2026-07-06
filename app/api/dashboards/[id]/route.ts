@@ -70,9 +70,24 @@ export async function DELETE(
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  await prisma.dashboard.deleteMany({
-    where: { id: parseInt(id), userId: session.userId, ...(session.tenantId ? { tenantId: session.tenantId } : {}) },
+  const parsedId = parseInt(id);
+  
+  // Try with tenantId first
+  const deleted = await prisma.dashboard.deleteMany({
+    where: { id: parsedId, userId: session.userId, ...(session.tenantId ? { tenantId: session.tenantId } : {}) },
   });
+  
+  // Fallback: legacy dashboards with NULL tenantId
+  if (deleted.count === 0 && session.tenantId) {
+    // Auto-fix tenantId, then delete
+    await prisma.dashboard.updateMany({
+      where: { id: parsedId, userId: session.userId, tenantId: null },
+      data: { tenantId: session.tenantId },
+    });
+    await prisma.dashboard.deleteMany({
+      where: { id: parsedId, userId: session.userId, tenantId: session.tenantId },
+    });
+  }
 
   return NextResponse.json({ success: true });
 }

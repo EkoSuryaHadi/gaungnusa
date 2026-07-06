@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Trash2 } from "lucide-react";
+import { authFetch } from "@/lib/auth-client";
 
 export default function DeleteSourceButton({
   sourceId,
@@ -17,7 +19,7 @@ export default function DeleteSourceButton({
     if (!confirm(`Delete source "${sourceName}"? This cannot be undone.`)) return;
 
     try {
-      const res = await fetch(`/api/sources/${sourceId}`, { method: "DELETE" });
+      const res = await authFetch(`/api/sources/${sourceId}`, { method: "DELETE" });
       if (res.ok) {
         onDeleted?.(sourceId);
         router.refresh();
@@ -33,10 +35,11 @@ export default function DeleteSourceButton({
   return (
     <button
       onClick={handleDelete}
-      className="px-2 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs hover:bg-red-500/20 transition-all"
+      className="btn btn-danger"
+      style={{ padding: "6px 10px", fontSize: 13 }}
       title="Delete source"
     >
-      🗑️
+      <Trash2 size={15} />
     </button>
   );
 }

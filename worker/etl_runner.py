@@ -38,7 +38,7 @@ def get_engine():
 
 
 def load_source(source: dict) -> pd.DataFrame:
-    """Load CSV file from uploads directory."""
+    """Load CSV or Excel file from uploads directory."""
     if not source.get("filePath"):
         raise ValueError("No filePath in source config")
 
@@ -46,8 +46,14 @@ def load_source(source: dict) -> pd.DataFrame:
     if not file_path.exists():
         raise FileNotFoundError(f"Source file not found: {file_path}")
 
+    ext = file_path.suffix.lower()
     print(f"[SOURCE] Loading {file_path.name} ({source.get('fileSize', '?')} bytes)")
-    df = pd.read_csv(file_path)
+
+    if ext in (".xlsx", ".xls"):
+        df = pd.read_excel(file_path)
+    else:
+        df = pd.read_csv(file_path)
+
     print(f"[SOURCE] Loaded {len(df)} rows, {len(df.columns)} columns")
     return df
 
@@ -89,40 +95,178 @@ def step_clean(df: pd.DataFrame, config: dict) -> pd.DataFrame:
         if removed > 0:
             print(f"[CLEAN] Removed {removed} duplicate rows")
 
-    if config.get("fillNulls"):
-        fill_map = config["fillNulls"]
-        for col, val in fill_map.items():
-            if col in result.columns:
-                result[col] = result[col].fillna(val)
-                print(f"[CLEAN] Filled nulls in '{col}' with '{val}'")
+    fill_nulls = config.get("fillNulls")
+    # Parse string-encoded JSON (from frontend, stored as JSON-in-JSON)
+    if isinstance(fill_nulls, str) and fill_nulls.strip().startswith('{'):
+        try:
+            fill_nulls = json.loads(fill_nulls)
+        except (json.JSONDecodeError, ValueError):
+            pass
+    if fill_nulls:
+        # Support two formats:
+        # 1. Boolean + fillNullsValue (frontend): fill ALL object columns
+        # 2. Dict (legacy): {"column": "value", ...} — fill specific columns
+        # Template support: values can reference other columns like "REVIEW_{SAP_DocNo}"
+        import re
+        def resolve_template(val: str, row: pd.Series) -> str:
+            """Replace {col_name} with actual row value."""
+            def replacer(m):
+                col = m.group(1)
+                return str(row[col]) if col in row.index else m.group(0)
+            return re.sub(r'\{(\w+)\}', replacer, val)
+        
+        if isinstance(fill_nulls, bool):
+            fill_val = str(config.get("fillNullsValue", ""))
+            has_template = '{' in fill_val
+            for col in result.select_dtypes(include=["object"]).columns:
+                null_mask = result[col].isna()
+                null_count = null_mask.sum()
+                if null_count > 0:
+                    if has_template:
+                        # Per-row template resolution
+                        result.loc[null_mask, col] = result.loc[null_mask].apply(
+                            lambda row: resolve_template(fill_val, row), axis=1
+                        )
+                    else:
+                        result[col] = result[col].fillna(fill_val)
+                    print(f"[CLEAN] Filled {null_count} nulls in '{col}' with '{fill_val}'")
+        elif isinstance(fill_nulls, dict):
+            for col, val in fill_nulls.items():
+                if col in result.columns:
+                    val_str = str(val)
+                    null_mask = result[col].isna()
+                    null_count = null_mask.sum()
+                    if null_count > 0:
+                        if '{' in val_str:
+                            result.loc[null_mask, col] = result.loc[null_mask].apply(
+                                lambda row: resolve_template(val_str, row), axis=1
+                            )
+                        else:
+                            result[col] = result[col].fillna(val_str)
+                        print(f"[CLEAN] Filled {null_count} nulls in '{col}' with '{val_str}'")
 
     return result
 
 
 def step_validate(df: pd.DataFrame, config: dict) -> pd.DataFrame:
-    """Validate data types and constraints. Returns rows that pass."""
+    """Validate data: NOT_NULL, COMPARE, NUMBER range, DATE format.
+    
+    Rules format (from frontend string or JSON array):
+      NOT_NULL:Bank_Ref
+      COMPARE:SAP_Amount,Bank_Amount,0
+      NUMBER:Amount,min=0
+      DATE:Transaction_Date,format=YYYY-MM-DD
+    
+    Mode: "flag" (default) — adds _validation_issues column
+          "drop" — removes failing rows
+    
+    Supports legacy dict format: [{"column":"x","type":"number","min":0}]
+    """
     result = df.copy()
-    rules = config.get("rules", [])
+    rules_raw = config.get("validationRules") or config.get("rules", [])
+    
+    # Parse rules string (frontend format: "NOT_NULL:col\\nCOMPARE:col1,col2,tolerance")
+    parsed_rules = []
+    if isinstance(rules_raw, str) and rules_raw.strip():
+        for line in rules_raw.strip().split("\n"):
+            line = line.strip()
+            if not line or ":" not in line:
+                continue
+            rule_type, params = line.split(":", 1)
+            rule_parts = [p.strip() for p in params.split(",")]
+            
+            if rule_type.upper() == "NOT_NULL" and rule_parts:
+                parsed_rules.append({"type": "NOT_NULL", "column": rule_parts[0]})
+            elif rule_type.upper() == "COMPARE" and len(rule_parts) >= 2:
+                parsed_rules.append({"type": "COMPARE", "col1": rule_parts[0], "col2": rule_parts[1], "tolerance": float(rule_parts[2]) if len(rule_parts) > 2 else 0})
+            elif rule_type.upper() == "NUMBER" and rule_parts:
+                r = {"type": "NUMBER", "column": rule_parts[0]}
+                for p in rule_parts[1:]:
+                    if "=" in p:
+                        k, v = p.split("=")
+                        r[k.strip()] = float(v.strip())
+                parsed_rules.append(r)
+            elif rule_type.upper() == "DATE" and rule_parts:
+                parsed_rules.append({"type": "DATE", "column": rule_parts[0], "format": rule_parts[1] if len(rule_parts) > 1 else None})
+    elif isinstance(rules_raw, list):
+        parsed_rules = rules_raw
+    
+    mode = config.get("validationMode", "flag")
+    issues = pd.Series([[] for _ in range(len(result))], index=result.index)
+    drop_mask = pd.Series(False, index=result.index)
+    
+    for rule in parsed_rules:
+        rule_type = rule.get("type", "").upper()
+        
+        if rule_type == "NOT_NULL":
+            col = rule.get("column", "")
+            if col in result.columns:
+                null_mask = result[col].isna() | (result[col].astype(str).str.strip() == "")
+                count = null_mask.sum()
+                if count > 0:
+                    if mode == "drop":
+                        drop_mask |= null_mask
+                    else:
+                        for idx in result[null_mask].index:
+                            issues[idx].append(f"Missing {col}")
+                    print(f"[VALIDATE] {count} rows with missing '{col}' {'dropped' if mode=='drop' else 'flagged'}")
+        
+        elif rule_type == "COMPARE":
+            col1 = rule.get("col1", "")
+            col2 = rule.get("col2", "")
+            tol = rule.get("tolerance", 0)
+            if col1 in result.columns and col2 in result.columns:
+                # Convert to numeric
+                a = pd.to_numeric(result[col1], errors="coerce")
+                b = pd.to_numeric(result[col2], errors="coerce")
+                diff = (a - b).abs()
+                mismatch = diff > tol
+                count = mismatch.sum()
+                if count > 0:
+                    if mode == "drop":
+                        drop_mask |= mismatch
+                    else:
+                        for idx in result[mismatch].index:
+                            d = diff[idx]
+                            issues[idx].append(f"Mismatch {col1} vs {col2} (diff={d:,.0f})")
+                    print(f"[VALIDATE] {count} rows with {col1} ≠ {col2} {'dropped' if mode=='drop' else 'flagged'}")
+        
+        elif rule_type == "NUMBER":
+            col = rule.get("column", "")
+            if col in result.columns:
+                result[col] = pd.to_numeric(result[col], errors="coerce")
+                min_val = rule.get("min")
+                max_val = rule.get("max")
+                if min_val is not None:
+                    mask = result[col] < min_val
+                    if mask.sum():
+                        drop_mask |= mask
+                        print(f"[VALIDATE] Dropped {mask.sum()} rows where {col} < {min_val}")
+                if max_val is not None:
+                    mask = result[col] > max_val
+                    if mask.sum():
+                        drop_mask |= mask
+                        print(f"[VALIDATE] Dropped {mask.sum()} rows where {col} > {max_val}")
+        
+        elif rule_type == "DATE":
+            col = rule.get("column", "")
+            if col in result.columns:
+                result[col] = pd.to_datetime(result[col], errors="coerce")
+                nulls = result[col].isna().sum()
+                if nulls:
+                    print(f"[VALIDATE] {nulls} rows with invalid date in '{col}'")
 
-    for rule in rules:
-        col = rule.get("column", "")
-        dtype = rule.get("type", "")
-        if col not in result.columns:
-            print(f"[VALIDATE] Column '{col}' not found, skipping")
-            continue
-
-        if dtype == "number":
-            result[col] = pd.to_numeric(result[col], errors="coerce")
-            if rule.get("min") is not None:
-                mask = result[col] >= rule["min"]
-                removed = (~mask).sum()
-                result = result[mask]
-                if removed:
-                    print(f"[VALIDATE] Removed {removed} rows where {col} < {rule['min']}")
-
-        elif dtype == "date":
-            result[col] = pd.to_datetime(result[col], errors="coerce")
-
+    # Apply mode
+    if mode == "drop":
+        result = result[~drop_mask]
+        print(f"[VALIDATE] {drop_mask.sum()} total rows removed, {len(result)} remaining")
+    else:
+        # Add issues column
+        result["_validation_issues"] = issues.apply(lambda x: "; ".join(x) if x else "PASS")
+        passed = (result["_validation_issues"] == "PASS").sum()
+        failed = len(result) - passed
+        print(f"[VALIDATE] {passed} rows PASS, {failed} rows with issues (flagged in _validation_issues)")
+    
     return result
 
 
@@ -189,28 +333,116 @@ def step_categorize(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     return result
 
 
+FUNC_MAP = {
+    "SUM": "sum",
+    "AVG": "mean",
+    "AVERAGE": "mean",
+    "COUNT": "count",
+    "MIN": "min",
+    "MAX": "max",
+}
+
+def _parse_aggregations(config: dict) -> dict:
+    """
+    Parse aggregations from config.  Supports two formats:
+
+    Format A — dict (legacy / programmatic):
+        {"total_amount": "Amount SUM", "tx_count": "* COUNT"}
+
+    Format B — multi-line string (frontend):
+        "total_amount = SUM(Amount)\\ntransaction_count = COUNT(*)\\navg_amount = AVG(Amount)"
+    """
+    raw = config.get("aggregations", {})
+
+    if isinstance(raw, dict) and raw:
+        return raw
+
+    if isinstance(raw, str) and raw.strip():
+        parsed = {}
+        for line in raw.strip().split("\n"):
+            line = line.strip()
+            if not line or "=" not in line:
+                continue
+            out_col, expr = line.split("=", 1)
+            out_col = out_col.strip()
+            expr = expr.strip()
+            # expr looks like "SUM(Amount)" or "COUNT(*)"
+            if "(" in expr and expr.endswith(")"):
+                func_name, col_part = expr[:-1].split("(", 1)
+                func_name = func_name.strip().upper()
+                inp_col = col_part.strip()
+                # Map to internal format "inp_col FUNC" or "* FUNC"
+                parsed[out_col] = f"{inp_col} {func_name}"
+            else:
+                parsed[out_col] = expr
+        return parsed
+
+    return {}
+
+
 def step_aggregate(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     """Aggregate: GROUP BY with aggregations."""
     group_by = config.get("groupBy", [])
-    aggs = config.get("aggregations", {})
+    if isinstance(group_by, str):
+        group_by = [g.strip() for g in group_by.split(",") if g.strip()]
+
+    aggs = _parse_aggregations(config)
 
     if not aggs:
         return df
 
-    pandas_agg = {}
+    # Build a temporary count column for COUNT(*)
+    count_star_col = None
+    agg_funcs: list[tuple] = []  # (pandas_func, column, output_name)
+
     for out_col, expr in aggs.items():
         parts = expr.split()
-        if len(parts) >= 2:
-            inp_col = parts[0]
-            func = parts[1] if parts[1] != "mean" else "mean"
-            if inp_col in df.columns:
-                pandas_agg[out_col] = pd.NamedAgg(column=inp_col, aggfunc=func)
+        if len(parts) < 2:
+            continue
+        inp_col = parts[0].strip('"')  # strip quotes from config
+        func = parts[1].upper()
+        pandas_func = FUNC_MAP.get(func)
+        if not pandas_func:
+            print(f"[AGGREGATE] Unknown function '{func}', skipping")
+            continue
+
+        if inp_col == "*" and func == "COUNT":
+            # COUNT(*) — count rows per group
+            if count_star_col is None:
+                count_star_col = "_count_star_"
+                # Use any column for counting; create a dedicated column
+                df[count_star_col] = 1
+            agg_funcs.append(("count_star", count_star_col, out_col))
+        elif inp_col in df.columns:
+            agg_funcs.append((pandas_func, inp_col, out_col))
+        else:
+            print(f"[AGGREGATE] Column '{inp_col}' not found, skipping")
+
+    if not agg_funcs:
+        return df
+
+    # Build pandas agg dict
+    pandas_agg = {}
+    for func, col, out_col in agg_funcs:
+        if func == "count_star":
+            pandas_agg[out_col] = pd.NamedAgg(column=col, aggfunc="sum")
+        else:
+            pandas_agg[out_col] = pd.NamedAgg(column=col, aggfunc=func)
 
     if group_by:
-        result = df.groupby(group_by, as_index=False).agg(**pandas_agg)
+        # Validate group-by columns
+        valid_groups = [g for g in group_by if g in df.columns]
+        if not valid_groups:
+            print(f"[AGGREGATE] No valid group-by columns found in data")
+            return df
+        result = df.groupby(valid_groups, as_index=False).agg(**pandas_agg)
     else:
         result = df.agg(**pandas_agg)
         result = pd.DataFrame([result])
+
+    # Drop the temporary count column
+    if count_star_col and count_star_col in df.columns:
+        df.drop(columns=[count_star_col], inplace=True)
 
     print(f"[AGGREGATE] Grouped by {group_by}, result: {len(result)} rows")
     return result
@@ -377,6 +609,7 @@ def run_pipeline(config_path: str) -> dict:
     df: pd.DataFrame | None = None
     rows_output = 0
     column_metadata: list[dict] = []
+    outputs: list[dict] = []  # metadata for each OUTPUT step
 
     for i, step in enumerate(steps):
         step_type = step.get("type", "UNKNOWN")
@@ -391,9 +624,20 @@ def run_pipeline(config_path: str) -> dict:
             if df is None:
                 print("[OUTPUT] No data to write, skipping")
                 continue
-            column_metadata = [{"name": str(col), "type": dtype_to_sql(df[col].dtype)} for col in df.columns]
-            rows_output = write_output(df, step)
-            df = None  # consumed
+            cols = [{"name": str(col), "type": dtype_to_sql(df[col].dtype)} for col in df.columns]
+            layer = (step.get("outputLayer") or config.get("outputLayer") or "SILVER").lower()
+            table = (step.get("outputTable") or config.get("outputTable") or "output").lower()
+            nrows = write_output(df, step)
+            rows_output = nrows
+            column_metadata = cols
+            outputs.append({
+                "layer": layer,
+                "table": table,
+                "rows": nrows,
+                "columns": cols,
+            })
+            # Don't set df = None — multiple OUTPUT steps can share the pipeline,
+            # and subsequent steps (AGGREGATE→OUTPUT) need the data.
 
         else:
             if df is None:
@@ -406,7 +650,7 @@ def run_pipeline(config_path: str) -> dict:
                 print(f"[{step_type}] Unknown step type, skipping")
 
     print(f"\n=== Pipeline Complete === rows={rows_output}")
-    return {"rows": rows_output, "columns": column_metadata}
+    return {"rows": rows_output, "columns": column_metadata, "outputs": outputs}
 
 
 if __name__ == "__main__":

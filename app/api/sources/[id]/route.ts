@@ -83,8 +83,32 @@ export async function DELETE(
 
   const { id } = await params;
   const source = await prisma.dataSource.findFirst({
-    where: { id: parseInt(id), userId: session.userId, ...(session.tenantId ? { tenantId: session.tenantId } : {}) },
+    where: { 
+      id: parseInt(id), 
+      userId: session.userId,
+      ...(session.tenantId ? { tenantId: session.tenantId } : {}), 
+    },
   });
+
+  // Fallback: if not found with tenantId, try without (legacy sources with NULL tenantId)
+  if (!source && session.tenantId) {
+    const legacySource = await prisma.dataSource.findFirst({
+      where: { id: parseInt(id), userId: session.userId, tenantId: null },
+    });
+    if (legacySource) {
+      // Auto-fix: assign tenantId
+      await prisma.dataSource.update({ where: { id: legacySource.id }, data: { tenantId: session.tenantId! } });
+      // Delete file
+      if (legacySource.filePath) {
+        try {
+          const fp = path.join(process.cwd(), "uploads", legacySource.filePath);
+          if (fs.existsSync(fp)) fs.unlinkSync(fp);
+        } catch (e) {}
+      }
+      await prisma.dataSource.delete({ where: { id: legacySource.id } });
+      return NextResponse.json({ success: true });
+    }
+  }
 
   if (!source) return NextResponse.json({ error: "Not found" }, { status: 404 });
 

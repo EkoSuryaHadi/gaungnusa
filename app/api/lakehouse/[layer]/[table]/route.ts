@@ -2,6 +2,72 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ layer: string; table: string }> }
+) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { layer, table } = await params;
+  const layerUpper = layer.toUpperCase();
+
+  if (!["SILVER", "BRONZE", "GOLD"].includes(layerUpper)) {
+    return NextResponse.json({ error: "Invalid layer" }, { status: 400 });
+  }
+
+  try {
+    // Find the lakehouse table record
+    const tableMeta = await prisma.lakehouseTable.findFirst({
+      where: {
+        layer: layerUpper,
+        tableName: table,
+        ...(session.tenantId ? { tenantId: session.tenantId } : {}),
+      },
+    });
+
+    if (!tableMeta) {
+      // Fallback: legacy with NULL tenantId
+      const legacy = await prisma.lakehouseTable.findFirst({
+        where: { layer: layerUpper, tableName: table, tenantId: null },
+      });
+      if (legacy) {
+        await prisma.lakehouseTable.update({
+          where: { id: legacy.id },
+          data: { tenantId: session.tenantId! },
+        });
+      } else {
+        return NextResponse.json({ error: "Table not found" }, { status: 404 });
+      }
+    }
+
+    // Drop the PostgreSQL table
+    try {
+      const schemaName = `"${layer.toLowerCase()}"`;
+      const tableName = `"${table}"`;
+      await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS ${schemaName}.${tableName}`);
+    } catch (e) {
+      console.error("Failed to drop PG table:", e);
+    }
+
+    // Delete the lakehouse metadata record
+    await prisma.lakehouseTable.deleteMany({
+      where: {
+        layer: layerUpper,
+        tableName: table,
+        ...(session.tenantId ? { tenantId: session.tenantId } : {}),
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting table:", error);
+    return NextResponse.json({ error: "Failed to delete table" }, { status: 500 });
+  }
+}
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ layer: string; table: string }> }

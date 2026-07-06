@@ -16,6 +16,7 @@ import {
   ExternalLink,
   BarChart3,
 } from "lucide-react";
+import { authFetch } from "@/lib/auth-client";
 import {
   Table,
   TableHeader,
@@ -109,7 +110,7 @@ export default function TableDetailPage() {
 
   // ── Auth check ──────────────────────────────────────────────────────────
   useEffect(() => {
-    fetch("/api/auth/session")
+    authFetch("/api/auth/session")
       .then((r) => r.json())
       .then((data) => {
         if (!data.session) {
@@ -128,8 +129,8 @@ export default function TableDetailPage() {
       setError("");
       try {
         const [dataRes, schemaRes] = await Promise.all([
-          fetch(`/api/lakehouse/${layer}/${table}`),
-          fetch(`/api/lakehouse/${layer}/${table}/schema`),
+          authFetch(`/api/lakehouse/${layer}/${table}`),
+          authFetch(`/api/lakehouse/${layer}/${table}/schema`),
         ]);
 
         if (!dataRes.ok) {

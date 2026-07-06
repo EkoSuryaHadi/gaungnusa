@@ -6,16 +6,14 @@ import Link from "next/link";
 import {
   Database,
   Layers,
-  ChevronDown,
-  ChevronRight,
+  HardDrive,
   RefreshCw,
   ArrowRight,
-  Table2,
-  Rows3,
-  Columns3,
-  HardDrive,
-  BarChart3,
+  Trash2,
+  Sparkles,
 } from "lucide-react";
+import { authFetch } from "@/lib/auth-client";
+import LakehouseDeleteButton from "./delete-button";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -32,50 +30,12 @@ interface LakehouseTableSummary {
   createdAt: string;
 }
 
-interface TablePreview {
-  columns: string[];
-  rows: Record<string, unknown>[];
-  totalRows: number;
-}
-
-interface ColumnDef {
-  name: string;
-  type: string;
-}
-
-interface TableSchema {
-  tableName: string;
-  displayName: string;
-  description: string | null;
-  layer: string;
-  columns: ColumnDef[];
-  rowsCount: number;
-  sizeBytes: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-const LAYERS: { key: Layer; label: string; color: string; desc: string }[] = [
-  {
-    key: "bronze",
-    label: "Bronze",
-    color: "amber",
-    desc: "Raw / Ingested",
-  },
-  {
-    key: "silver",
-    label: "Silver",
-    color: "slate",
-    desc: "Cleaned & Validated",
-  },
-  {
-    key: "gold",
-    label: "Gold",
-    color: "emerald",
-    desc: "Aggregated & KPIs",
-  },
+const LAYERS: { key: Layer; label: string }[] = [
+  { key: "bronze",  label: "Bronze" },
+  { key: "silver",  label: "Silver" },
+  { key: "gold",    label: "Gold"   },
 ];
 
 function formatBytes(bytes: number): string {
@@ -98,15 +58,88 @@ export default function LakehousePage() {
   const [tables, setTables] = useState<LakehouseTableSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [expandedTable, setExpandedTable] = useState<string | null>(null);
-  // expanded state
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewData, setPreviewData] = useState<TablePreview | null>(null);
-  const [schemaData, setSchemaData] = useState<ColumnDef[] | null>(null);
+  const [layerCounts, setLayerCounts] = useState<Record<Layer, number>>({
+    bronze: 0,
+    silver: 0,
+    gold: 0,
+  });
+
+  const handleTableDeleted = useCallback((tableName: string) => {
+    setTables((prev) => prev.filter((t) => t.tableName !== tableName));
+    setLayerCounts((prev) => ({
+      ...prev,
+      [activeTab]: Math.max(0, prev[activeTab] - 1),
+    }));
+  }, [activeTab]);
+
+  // ── Gold metric previews ──────────────────────────────────────────────────
+  const [goldPreviews, setGoldPreviews] = useState<
+    Record<string, Record<string, unknown> | null>
+  >({});
+  const [goldPreviewsLoading, setGoldPreviewsLoading] = useState(false);
+
+  function formatColumnLabel(name: string): string {
+    return name
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  function formatKpiValue(value: unknown): string {
+    if (value === null || value === undefined) return "—";
+    if (typeof value === "bigint") return Number(value).toLocaleString();
+    if (typeof value === "number") {
+      if (Number.isInteger(value)) return value.toLocaleString();
+      return value.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      });
+    }
+    if (typeof value === "string") return value;
+    return String(value);
+  }
+
+  const fetchGoldPreview = useCallback(
+    async (tableName: string) => {
+      try {
+        const res = await authFetch(`/api/lakehouse/gold/${tableName}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        const rows = data.rows || [];
+        return rows.length > 0 ? (rows[0] as Record<string, unknown>) : null;
+      } catch {
+        return null;
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (activeTab !== "gold" || tables.length === 0) {
+      setGoldPreviews({});
+      return;
+    }
+    let cancelled = false;
+    setGoldPreviewsLoading(true);
+    async function load() {
+      const previews: Record<string, Record<string, unknown> | null> = {};
+      for (const t of tables) {
+        if (cancelled) return;
+        previews[t.tableName] = await fetchGoldPreview(t.tableName);
+      }
+      if (!cancelled) {
+        setGoldPreviews(previews);
+        setGoldPreviewsLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, tables, fetchGoldPreview]);
 
   // ── Auth check ──────────────────────────────────────────────────────────
   useEffect(() => {
-    fetch("/api/auth/session")
+    authFetch("/api/auth/session")
       .then((r) => r.json())
       .then((data) => {
         if (!data.session) {
@@ -116,18 +149,40 @@ export default function LakehousePage() {
       .catch(() => router.push("/login"));
   }, [router]);
 
+  // ── Fetch layer counts on mount ─────────────────────────────────────────
+  useEffect(() => {
+    async function fetchCounts() {
+      const counts: Record<Layer, number> = { bronze: 0, silver: 0, gold: 0 };
+      for (const layer of LAYERS) {
+        try {
+          const res = await authFetch(`/api/lakehouse/${layer.key}`);
+          if (res.ok) {
+            const data = await res.json();
+            counts[layer.key] = (data.tables || []).length;
+          }
+        } catch {
+          /* ignore individual layer fetch failures */
+        }
+      }
+      setLayerCounts(counts);
+    }
+    fetchCounts();
+  }, []);
+
   // ── Fetch tables for active tab ─────────────────────────────────────────
   const fetchTables = useCallback(async (layer: Layer) => {
     setLoading(true);
     setError("");
-    setExpandedTable(null);
-    setPreviewData(null);
-    setSchemaData(null);
     try {
-      const res = await fetch(`/api/lakehouse/${layer}`);
+      const res = await authFetch(`/api/lakehouse/${layer}`);
       if (!res.ok) throw new Error("Failed to load tables");
       const data = await res.json();
       setTables(data.tables || []);
+      // update count for the active layer
+      setLayerCounts((prev) => ({
+        ...prev,
+        [layer]: (data.tables || []).length,
+      }));
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Unknown error");
       setTables([]);
@@ -140,369 +195,550 @@ export default function LakehousePage() {
     fetchTables(activeTab);
   }, [activeTab, fetchTables]);
 
-  // ── Toggle expand ───────────────────────────────────────────────────────
-  async function handleToggleTable(tableName: string) {
-    if (expandedTable === tableName) {
-      setExpandedTable(null);
-      setPreviewData(null);
-      setSchemaData(null);
-      return;
-    }
-    setExpandedTable(tableName);
-    setPreviewLoading(true);
-    setPreviewData(null);
-    setSchemaData(null);
-
-    try {
-      const [previewRes, schemaRes] = await Promise.all([
-        fetch(`/api/lakehouse/${activeTab}/${tableName}`),
-        fetch(`/api/lakehouse/${activeTab}/${tableName}/schema`),
-      ]);
-
-      if (previewRes.ok) {
-        const preview = await previewRes.json();
-        setPreviewData(preview);
-      }
-      if (schemaRes.ok) {
-        const schema = await schemaRes.json();
-        setSchemaData(schema.columns || []);
-      }
-    } catch {
-      // ignore
-    } finally {
-      setPreviewLoading(false);
-    }
-  }
-
   // ── Render ──────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div
+      style={{
+        maxWidth: "72rem",
+        margin: "0 auto",
+        padding: "2rem 1.5rem 4rem",
+      }}
+    >
+      {/* ── Header ──────────────────────────────────────────────────── */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          marginBottom: "2rem",
+        }}
+      >
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-              <Database className="w-5 h-5 text-emerald-400" />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.75rem",
+              marginBottom: "0.375rem",
+            }}
+          >
+            <div
+              style={{
+                padding: "0.5rem",
+                borderRadius: "var(--radius-md)",
+                background: "var(--gold-dim)",
+                border: "1px solid rgba(212,168,83,0.15)",
+              }}
+            >
+              <Database
+                style={{ width: "1.25rem", height: "1.25rem", color: "var(--gold-400)" }}
+              />
             </div>
-            <h1 className="text-2xl font-bold text-white">Lakehouse Explorer</h1>
+            <h1
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "1.75rem",
+                fontStyle: "italic",
+                color: "var(--gold-400)",
+                fontWeight: 400,
+                margin: 0,
+              }}
+            >
+              Lakehouse Explorer
+            </h1>
           </div>
-          <p className="text-sm text-slate-400">
-            Browse your data across Silver, Bronze, and Gold layers
+          <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)", margin: 0 }}>
+            Browse your data across Bronze, Silver, and Gold layers
           </p>
         </div>
         <Link
           href="/dashboard"
-          className="text-sm text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
+          style={{
+            fontSize: "0.875rem",
+            color: "var(--text-secondary)",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.25rem",
+            textDecoration: "none",
+          }}
         >
-          <ArrowRight className="w-4 h-4" /> Dashboard
+          <ArrowRight style={{ width: "1rem", height: "1rem" }} />
+          Dashboard
         </Link>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="flex border-b border-slate-800">
-        {LAYERS.map((layer) => (
-          <button
-            key={layer.key}
-            onClick={() => setActiveTab(layer.key)}
-            className={`px-6 py-3 text-sm font-medium transition-all flex items-center gap-2 border-b-2 ${
-              activeTab === layer.key
-                ? "border-emerald-500 text-white"
-                : "border-transparent text-slate-500 hover:text-slate-300"
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            {layer.label}
-            <span className="text-xs opacity-60 hidden sm:inline">
-              {layer.desc}
-            </span>
-          </button>
-        ))}
+      {/* ── Pill Tab Navigation ─────────────────────────────────────── */}
+      <div
+        style={{
+          display: "flex",
+          gap: "0.5rem",
+          marginBottom: "2rem",
+        }}
+      >
+        {LAYERS.map((layer) => {
+          const isActive = activeTab === layer.key;
+          return (
+            <button
+              key={layer.key}
+              className="btn btn-ghost"
+              onClick={() => setActiveTab(layer.key)}
+              style={{
+                position: "relative",
+                padding: "0.5rem 1.25rem",
+                borderBottom: isActive
+                  ? "2px solid var(--gold-500)"
+                  : "2px solid transparent",
+                borderRadius: "2rem",
+                fontWeight: isActive ? 500 : 400,
+                color: isActive ? "var(--gold-400)" : "var(--text-secondary)",
+              }}
+            >
+              <Layers style={{ width: "1rem", height: "1rem" }} />
+              {layer.label}
+              <span
+                className="badge badge-draft"
+                style={{ marginLeft: "0.375rem" }}
+              >
+                {layerCounts[layer.key]}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Refresh / Error */}
-      <div className="flex items-center gap-4">
+      {/* ── Refresh / Error ────────────────────────────────────────── */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "1rem",
+          marginBottom: "1.5rem",
+        }}
+      >
         <button
           onClick={() => fetchTables(activeTab)}
           disabled={loading}
-          className="text-sm text-slate-400 hover:text-white flex items-center gap-1.5 transition-colors disabled:opacity-50"
+          className="btn btn-ghost"
+          style={{
+            fontSize: "0.8125rem",
+            padding: "0.375rem 0.75rem",
+            opacity: loading ? 0.5 : 1,
+          }}
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw
+            style={{
+              width: "0.875rem",
+              height: "0.875rem",
+              ...(loading ? { animation: "spin 1s linear infinite" } : {}),
+            }}
+          />
           Refresh
         </button>
         {error && (
-          <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-1">
+          <p
+            style={{
+              fontSize: "0.8125rem",
+              color: "var(--clay-400)",
+              background: "var(--clay-dim)",
+              border: "1px solid rgba(184,92,58,0.2)",
+              borderRadius: "var(--radius-md)",
+              padding: "0.25rem 0.75rem",
+              margin: 0,
+            }}
+          >
             {error}
           </p>
         )}
       </div>
 
-      {/* Tables List */}
-      {loading ? (
-        <div className="text-center py-20">
-          <RefreshCw className="w-8 h-8 text-slate-500 animate-spin mx-auto mb-3" />
-          <p className="text-slate-500">Loading {activeTab} tables...</p>
+      {/* ── Loading State ──────────────────────────────────────────── */}
+      {loading && (
+        <div style={{ textAlign: "center", padding: "5rem 0" }}>
+          <RefreshCw
+            style={{
+              width: "2rem",
+              height: "2rem",
+              color: "var(--text-muted)",
+              animation: "spin 1s linear infinite",
+              marginBottom: "0.75rem",
+            }}
+          />
+          <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>
+            Loading {activeTab} tables…
+          </p>
         </div>
-      ) : tables.length === 0 ? (
-        <div className="text-center py-20">
-          <Table2 className="w-12 h-12 text-slate-700 mx-auto mb-4" />
-          <p className="text-slate-500 text-lg font-medium">No tables yet</p>
-          <p className="text-slate-600 text-sm mt-1">
+      )}
+
+      {/* ── Empty State ────────────────────────────────────────────── */}
+      {!loading && tables.length === 0 && !error && activeTab !== "gold" && (
+        <div className="empty-state">
+          <Database
+            style={{
+              width: "2.5rem",
+              height: "2.5rem",
+              color: "var(--text-muted)",
+              position: "relative",
+              zIndex: 1,
+            }}
+          />
+          <h3>No tables yet</h3>
+          <p
+            style={{
+              fontSize: "0.875rem",
+              color: "var(--text-muted)",
+              maxWidth: "20rem",
+              position: "relative",
+              zIndex: 1,
+            }}
+          >
             Create a pipeline to populate the {activeTab} layer
           </p>
           <Link
             href="/pipelines/new"
-            className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 transition-all"
+            className="btn btn-primary"
+            style={{ position: "relative", zIndex: 1, textDecoration: "none" }}
           >
-            Create Pipeline <ArrowRight className="w-3.5 h-3.5" />
+            Create Pipeline
+            <ArrowRight style={{ width: "0.875rem", height: "0.875rem" }} />
           </Link>
         </div>
-      ) : (
-        <div className="space-y-3">
+      )}
+
+      {/* ── Gold Empty State ───────────────────────────────────────── */}
+      {!loading && tables.length === 0 && !error && activeTab === "gold" && (
+        <div
+          className="empty-state"
+          style={{ borderColor: "rgba(212,168,83,0.15)" }}
+        >
+          <Sparkles
+            style={{
+              width: "2.5rem",
+              height: "2.5rem",
+              color: "var(--gold-400)",
+              position: "relative",
+              zIndex: 1,
+            }}
+          />
+          <h3 style={{ color: "var(--gold-400)" }}>No Gold Metrics yet</h3>
+          <p
+            style={{
+              fontSize: "0.875rem",
+              color: "var(--text-muted)",
+              maxWidth: "20rem",
+              position: "relative",
+              zIndex: 1,
+            }}
+          >
+            Run an aggregation pipeline to create Gold-layer business metrics
+          </p>
+          <Link
+            href="/pipelines/new"
+            className="btn btn-primary"
+            style={{ position: "relative", zIndex: 1, textDecoration: "none" }}
+          >
+            Create Pipeline
+            <ArrowRight style={{ width: "0.875rem", height: "0.875rem" }} />
+          </Link>
+        </div>
+      )}
+
+      {/* ── Card Grid: Bronze & Silver ──────────────────────────────── */}
+      {!loading && tables.length > 0 && activeTab !== "gold" && (
+        <div
+          className="stagger"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+            gap: "1rem",
+          }}
+        >
           {tables.map((table) => (
-            <div
+            <Link
               key={table.id}
-              className="rounded-xl bg-slate-950 border border-slate-800 overflow-hidden transition-all"
+              href={`/lakehouse/${activeTab}/${table.tableName}`}
+              className="card pipeline-card"
+              style={{
+                display: "block",
+                padding: "1.25rem",
+                textDecoration: "none",
+                cursor: "pointer",
+                position: "relative",
+              }}
             >
-              {/* Table Card Header */}
-              <button
-                onClick={() => handleToggleTable(table.tableName)}
-                className="w-full text-left p-4 flex items-center justify-between hover:bg-slate-900/50 transition-colors"
+              <LakehouseDeleteButton
+                layer={activeTab}
+                tableName={table.tableName}
+                displayName={table.displayName}
+                onDeleted={handleTableDeleted}
+              />
+              {/* Table name */}
+              <h3
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "1.0625rem",
+                  fontWeight: 500,
+                  color: "var(--text-primary)",
+                  margin: "0 0 0.75rem",
+                  lineHeight: 1.4,
+                }}
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className={`p-2 rounded-lg shrink-0 ${
-                      activeTab === "gold"
-                        ? "bg-emerald-500/10 border border-emerald-500/20"
-                        : activeTab === "bronze"
-                        ? "bg-amber-500/10 border border-amber-500/20"
-                        : "bg-slate-500/10 border border-slate-500/20"
-                    }`}
-                  >
-                    <Table2
-                      className={`w-4 h-4 ${
-                        activeTab === "gold"
-                          ? "text-emerald-400"
-                          : activeTab === "bronze"
-                          ? "text-amber-400"
-                          : "text-slate-400"
-                      }`}
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-white truncate">
-                      {table.displayName}
-                    </h3>
-                    {table.description && (
-                      <p className="text-xs text-slate-500 truncate">
-                        {table.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                {table.displayName}
+              </h3>
 
-                <div className="flex items-center gap-4 sm:gap-6 shrink-0">
-                  <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400">
-                    <Rows3 className="w-3.5 h-3.5" />
-                    {formatNumber(table.rowsCount)}
-                  </div>
-                  <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400">
-                    <Columns3 className="w-3.5 h-3.5" />
-                    {table.columnsCount}
-                  </div>
-                  <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-400">
-                    <HardDrive className="w-3.5 h-3.5" />
-                    {formatBytes(table.sizeBytes)}
-                  </div>
-                  {expandedTable === table.tableName ? (
-                    <ChevronDown className="w-4 h-4 text-slate-500" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-slate-500" />
-                  )}
-                </div>
-              </button>
-
-              {/* Mobile metadata row */}
-              <div className="sm:hidden flex items-center gap-4 px-4 pb-3 text-xs text-slate-500">
-                <span className="flex items-center gap-1">
-                  <Rows3 className="w-3 h-3" />
+              {/* Metadata row */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "0.875rem",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                }}
+              >
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.3125rem",
+                    fontSize: "0.8125rem",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  <Database
+                    style={{ width: "0.8125rem", height: "0.8125rem", opacity: 0.6 }}
+                  />
                   {formatNumber(table.rowsCount)}
                 </span>
-                <span className="flex items-center gap-1">
-                  <Columns3 className="w-3 h-3" />
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.3125rem",
+                    fontSize: "0.8125rem",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  <Layers
+                    style={{ width: "0.8125rem", height: "0.8125rem", opacity: 0.6 }}
+                  />
                   {table.columnsCount}
                 </span>
-                <span className="flex items-center gap-1">
-                  <HardDrive className="w-3 h-3" />
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.3125rem",
+                    fontSize: "0.8125rem",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  <HardDrive
+                    style={{ width: "0.8125rem", height: "0.8125rem", opacity: 0.6 }}
+                  />
                   {formatBytes(table.sizeBytes)}
                 </span>
               </div>
 
-              {/* Expanded Content */}
-              {expandedTable === table.tableName && (
-                <div className="border-t border-slate-800 p-4 space-y-5 bg-slate-900/30">
-                  {previewLoading ? (
-                    <div className="text-center py-6">
-                      <RefreshCw className="w-5 h-5 text-slate-500 animate-spin mx-auto" />
-                    </div>
-                  ) : (
-                    <>
-                      {/* Data Preview */}
-                      <div>
-                        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-                          Data Preview
-                          {previewData && (
-                            <span className="ml-2 font-normal normal-case text-slate-600">
-                              (showing {previewData.rows.length} of{" "}
-                              {formatNumber(previewData.totalRows)} rows)
-                            </span>
-                          )}
-                        </h4>
-                        {previewData &&
-                        previewData.columns.length > 0 &&
-                        previewData.rows.length > 0 ? (
-                          <div className="overflow-x-auto rounded-lg border border-slate-800">
-                            <table className="w-full text-xs">
-                              <thead>
-                                <tr className="bg-slate-950/80">
-                                  {previewData.columns.map((col) => (
-                                    <th
-                                      key={col}
-                                      className="text-left px-3 py-2 font-medium text-slate-400 whitespace-nowrap border-r border-slate-800 last:border-r-0"
-                                    >
-                                      {col}
-                                    </th>
-                                  ))}
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {previewData.rows.map(
-                                  (row: Record<string, unknown>, i: number) => (
-                                    <tr
-                                      key={i}
-                                      className="border-t border-slate-800 hover:bg-slate-800/30"
-                                    >
-                                      {previewData.columns.map((col) => (
-                                        <td
-                                          key={col}
-                                          className="px-3 py-1.5 text-slate-300 whitespace-nowrap border-r border-slate-800 last:border-r-0 max-w-[250px] truncate"
-                                        >
-                                          {row[col] === null
-                                            ? "—"
-                                            : String(row[col])}
-                                        </td>
-                                      ))}
-                                    </tr>
-                                  )
-                                )}
-                              </tbody>
-                            </table>
-                          </div>
-                        ) : (
-                          <p className="text-sm text-slate-600 bg-slate-950 rounded-lg p-4 border border-slate-800">
-                            No data available yet. Run a pipeline to populate
-                            this table.
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Schema & Actions */}
-                      <div className="grid gap-5 md:grid-cols-2">
-                        {/* Schema */}
-                        <div>
-                          <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-                            Schema
-                          </h4>
-                          {schemaData && schemaData.length > 0 ? (
-                            <div className="rounded-lg border border-slate-800 overflow-hidden">
-                              <table className="w-full text-xs">
-                                <thead>
-                                  <tr className="bg-slate-950/80">
-                                    <th className="text-left px-3 py-2 font-medium text-slate-400">
-                                      Column
-                                    </th>
-                                    <th className="text-left px-3 py-2 font-medium text-slate-400">
-                                      Type
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {schemaData.map((col, i) => (
-                                    <tr
-                                      key={i}
-                                      className="border-t border-slate-800"
-                                    >
-                                      <td className="px-3 py-1.5 text-slate-300 font-mono text-xs">
-                                        {col.name}
-                                      </td>
-                                      <td className="px-3 py-1.5 text-slate-500 font-mono text-xs">
-                                        {col.type}
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          ) : (
-                            <p className="text-sm text-slate-600 bg-slate-950 rounded-lg p-4 border border-slate-800">
-                              No schema defined.
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="space-y-3">
-                          <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-                            Actions
-                          </h4>
-                          <Link
-                            href={`/lakehouse/${activeTab}/${table.tableName}`}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/50 border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-700/50 hover:text-white transition-all"
-                          >
-                            <Table2 className="w-4 h-4" />
-                            Open Full Table View
-                          </Link>
-                          {/* Context-aware flow button */}
-                          {activeTab === "bronze" && (
-                            <Link
-                              href={`/pipelines/new?sourceTable=${table.tableName}&sourceLayer=BRONZE&targetLayer=SILVER`}
-                              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-slate-400 text-slate-950 font-bold text-sm hover:brightness-110 shadow-lg shadow-amber-500/20 transition-all"
-                            >
-                              <Layers className="w-4 h-4" />
-                              ⬆️ Process to Silver
-                            </Link>
-                          )}
-                          {activeTab === "silver" && (
-                            <Link
-                              href={`/pipelines/new?sourceTable=${table.tableName}&sourceLayer=SILVER&targetLayer=GOLD`}
-                              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-slate-400 to-emerald-500 text-slate-950 font-bold text-sm hover:brightness-110 shadow-lg shadow-emerald-500/20 transition-all"
-                            >
-                              <Layers className="w-4 h-4" />
-                              ⬆️ Process to Gold
-                            </Link>
-                          )}
-                          {/* Generic pipeline (all layers) */}
-                          <Link
-                            href={`/pipelines/new?sourceTable=${table.tableName}&sourceLayer=${activeTab.toUpperCase()}`}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 transition-all"
-                          >
-                            <Layers className="w-4 h-4" />
-                            Custom Pipeline
-                          </Link>
-                          <Link
-                            href={`/dashboards/new?table=${table.tableName}&layer=${activeTab}`}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-medium hover:bg-purple-500/20 transition-all"
-                          >
-                            <BarChart3 className="w-4 h-4" />
-                            Create Dashboard
-                          </Link>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
+              {/* Description (if present) */}
+              {table.description && (
+                <p
+                  style={{
+                    fontSize: "0.8125rem",
+                    color: "var(--text-muted)",
+                    margin: "0.625rem 0 0",
+                    lineHeight: 1.5,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {table.description}
+                </p>
               )}
-            </div>
+            </Link>
           ))}
+        </div>
+      )}
+
+      {/* ── Card Grid: Gold Metrics ─────────────────────────────────── */}
+      {!loading && tables.length > 0 && activeTab === "gold" && (
+        <div
+          className="stagger"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+            gap: "1rem",
+          }}
+        >
+          {tables.map((table) => {
+            const preview = goldPreviews[table.tableName];
+            const kpis: { label: string; value: unknown }[] = preview
+              ? Object.entries(preview)
+                  .slice(0, 3)
+                  .map(([k, v]) => ({ label: formatColumnLabel(k), value: v }))
+              : [];
+
+            const createdAt = new Date(table.createdAt).toLocaleDateString(
+              "en-GB",
+              { day: "numeric", month: "short", year: "numeric" }
+            );
+
+            return (
+              <Link
+                key={table.id}
+                href={`/lakehouse/gold/${table.tableName}`}
+                style={{
+                  display: "block",
+                  textDecoration: "none",
+                  cursor: "pointer",
+                  position: "relative",
+                  background: "#1a1917",
+                  border: "1px solid rgba(212,168,83,0.2)",
+                  borderRadius: "var(--radius-lg, 0.75rem)",
+                  padding: "1.25rem",
+                  boxShadow: "0 0 40px rgba(212,168,83,0.04), 0 0 80px rgba(212,168,83,0.02)",
+                  transition: "border-color 0.2s, box-shadow 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor =
+                    "rgba(212,168,83,0.35)";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 50px rgba(212,168,83,0.08), 0 0 100px rgba(212,168,83,0.04)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor =
+                    "rgba(212,168,83,0.2)";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 40px rgba(212,168,83,0.04), 0 0 80px rgba(212,168,83,0.02)";
+                }}
+              >
+                <LakehouseDeleteButton
+                  layer="gold"
+                  tableName={table.tableName}
+                  displayName={table.displayName}
+                  onDeleted={handleTableDeleted}
+                />
+
+                {/* Header: Gold icon + table name */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    marginBottom: "0.75rem",
+                  }}
+                >
+                  <span style={{ fontSize: "1.25rem" }}>🥇</span>
+                  <h3
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      fontSize: "1.0625rem",
+                      fontWeight: 500,
+                      color: "var(--gold-400)",
+                      margin: 0,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {table.displayName}
+                  </h3>
+                </div>
+
+                {/* KPI preview */}
+                {goldPreviewsLoading && !preview && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      padding: "0.75rem 0",
+                      color: "var(--text-muted)",
+                      fontSize: "0.8125rem",
+                    }}
+                  >
+                    <RefreshCw
+                      style={{
+                        width: "0.875rem",
+                        height: "0.875rem",
+                        animation: "spin 1s linear infinite",
+                      }}
+                    />
+                    Loading metrics…
+                  </div>
+                )}
+
+                {!goldPreviewsLoading && kpis.length > 0 && (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: `repeat(${Math.min(kpis.length, 3)}, 1fr)`,
+                      gap: "0.5rem",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    {kpis.map((kpi) => (
+                      <div
+                        key={kpi.label}
+                        style={{
+                          background: "rgba(212,168,83,0.08)",
+                          border: "1px solid rgba(212,168,83,0.12)",
+                          borderRadius: "var(--radius-md, 0.5rem)",
+                          padding: "0.5rem 0.625rem",
+                          textAlign: "center",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: "1.125rem",
+                            fontWeight: 700,
+                            color: "var(--gold-400)",
+                            lineHeight: 1.2,
+                            fontFamily: "var(--font-display)",
+                          }}
+                        >
+                          {formatKpiValue(kpi.value)}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "0.625rem",
+                            color: "var(--text-muted)",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                            marginTop: "0.125rem",
+                          }}
+                        >
+                          {kpi.label}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {!goldPreviewsLoading && kpis.length === 0 && (
+                  <div
+                    style={{
+                      padding: "0.75rem 0",
+                      color: "var(--text-muted)",
+                      fontSize: "0.8125rem",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    No data available
+                  </div>
+                )}
+
+                {/* Created date */}
+                <div
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "var(--text-muted)",
+                    marginTop: "0.5rem",
+                    opacity: 0.7,
+                  }}
+                >
+                  Created: {createdAt}
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

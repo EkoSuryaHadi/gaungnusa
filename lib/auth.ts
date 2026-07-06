@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 
 export type Role = "ADMIN" | "ANALYST" | "VIEWER";
@@ -22,7 +22,7 @@ function getSecret(): Uint8Array {
   return new TextEncoder().encode(secret);
 }
 
-async function signSession(data: SessionData): Promise<string> {
+export async function signSession(data: SessionData): Promise<string> {
   return await new SignJWT(data as unknown as JWTPayload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -60,11 +60,33 @@ export async function setSession(data: SessionData): Promise<void> {
   });
 }
 
-export async function getSession(): Promise<SessionData | null> {
+/**
+ * Extract token from: cookie (priority) OR Authorization: Bearer header (fallback)
+ */
+async function getToken(): Promise<string | null> {
+  // 1. Try cookie first
   const c = await cookies();
   const cookie = c.get(COOKIE_NAME);
-  if (!cookie?.value) return null;
-  return await verifySessionToken(cookie.value);
+  if (cookie?.value) return cookie.value;
+
+  // 2. Try Authorization header (for client-side fetch with localStorage token)
+  try {
+    const h = await headers();
+    const authHeader = h.get("authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+      return authHeader.slice(7);
+    }
+  } catch {
+    // headers() might throw in some contexts
+  }
+
+  return null;
+}
+
+export async function getSession(): Promise<SessionData | null> {
+  const token = await getToken();
+  if (!token) return null;
+  return await verifySessionToken(token);
 }
 
 export async function destroySession(): Promise<void> {

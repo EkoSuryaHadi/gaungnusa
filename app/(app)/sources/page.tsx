@@ -3,18 +3,27 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Upload, Database, Globe, FileText, RefreshCw, AlertCircle } from "lucide-react";
+import {
+  Upload,
+  RefreshCw,
+  AlertCircle,
+  Rows3,
+  Clock,
+  Eye,
+  Zap,
+} from "lucide-react";
 import DeleteSourceButton from "./delete-button";
+import { authFetch, clearAuth } from "@/lib/auth-client";
 
 // ---------------------------------------------------------------------------
-// Types matching the API response shape
+// Types
 // ---------------------------------------------------------------------------
 
 interface DataSource {
   id: number;
   name: string;
   type: string; // CSV | EXCEL | JSON | API | DATABASE
-  status: string; // ACTIVE | ERROR | ARCHIVED
+  status: string;
   fileName: string | null;
   fileSize: number | null;
   rowsCount: number | null;
@@ -27,14 +36,6 @@ interface DataSource {
 // Helpers
 // ---------------------------------------------------------------------------
 
-const TYPE_ICON: Record<string, string> = {
-  CSV: "📄",
-  EXCEL: "📊",
-  JSON: "📋",
-  API: "🔌",
-  DATABASE: "🗄️",
-};
-
 const TYPE_LABEL: Record<string, string> = {
   CSV: "CSV",
   EXCEL: "Excel",
@@ -44,7 +45,7 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 function formatBytes(bytes: number | null): string {
-  if (bytes == null) return "—";
+  if (bytes == null) return "\u2014";
   const units = ["B", "KB", "MB", "GB"];
   let i = 0;
   let size = bytes;
@@ -66,20 +67,6 @@ function formatDate(iso: string | null): string {
   });
 }
 
-function statusBadge(status: string) {
-  const map: Record<string, { label: string; cls: string }> = {
-    ACTIVE: { label: "Active", cls: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
-    ERROR: { label: "Error", cls: "bg-red-500/10 text-red-400 border-red-500/20" },
-    ARCHIVED: { label: "Archived", cls: "bg-slate-500/10 text-slate-400 border-slate-500/20" },
-  };
-  const s = map[status] ?? map.ACTIVE;
-  return (
-    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${s.cls}`}>
-      {s.label}
-    </span>
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -98,7 +85,7 @@ export default function SourcesPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/sources");
+      const res = await authFetch("/api/sources");
       if (res.status === 401) {
         router.push("/login");
         return;
@@ -120,20 +107,56 @@ export default function SourcesPage() {
   // ----- Loading skeleton -----
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-        <div className="flex items-center justify-between">
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px" }}>
+        {/* Header skeleton */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 32,
+          }}
+        >
           <div>
-            <div className="h-8 w-48 bg-slate-800 rounded animate-pulse" />
-            <div className="h-4 w-72 bg-slate-800 rounded mt-2 animate-pulse" />
+            <div
+              className="skeleton"
+              style={{ width: 200, height: 28, marginBottom: 8 }}
+            />
+            <div className="skeleton" style={{ width: 160, height: 16 }} />
           </div>
-          <div className="h-10 w-36 bg-slate-800 rounded-xl animate-pulse" />
+          <div
+            className="skeleton"
+            style={{ width: 140, height: 40, borderRadius: "var(--radius-md)" }}
+          />
         </div>
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        {/* Card skeletons */}
+        <div
+          className="stagger"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: 16,
+          }}
+        >
           {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur p-6 space-y-3">
-              <div className="h-5 w-32 bg-slate-800 rounded animate-pulse" />
-              <div className="h-4 w-24 bg-slate-800 rounded animate-pulse" />
-              <div className="h-3 w-full bg-slate-800 rounded animate-pulse" />
+            <div key={i} className="card" style={{ padding: 20 }}>
+              <div
+                className="skeleton"
+                style={{ width: "60%", height: 18, marginBottom: 12 }}
+              />
+              <div
+                className="skeleton"
+                style={{
+                  width: 80,
+                  height: 22,
+                  borderRadius: 20,
+                  marginBottom: 16,
+                }}
+              />
+              <div style={{ display: "flex", gap: 16 }}>
+                <div className="skeleton" style={{ flex: 1, height: 14 }} />
+                <div className="skeleton" style={{ flex: 1, height: 14 }} />
+              </div>
             </div>
           ))}
         </div>
@@ -144,20 +167,53 @@ export default function SourcesPage() {
   // ----- Error state -----
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Data Sources</h1>
-            <p className="text-sm text-slate-400 mt-1">Manage your ingested datasets</p>
-          </div>
-        </div>
-        <div className="glass p-8 text-center space-y-4">
-          <AlertCircle className="mx-auto text-red-400" size={40} />
-          <p className="text-red-400">{error}</p>
-          <button
-            onClick={fetchSources}
-            className="px-5 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition-all"
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 32,
+          }}
+        >
+          <h1
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: 28,
+              fontWeight: 400,
+              fontStyle: "italic",
+              color: "var(--gold-400)",
+              margin: 0,
+              lineHeight: 1.2,
+            }}
           >
+            Data Sources
+          </h1>
+        </div>
+        <div
+          className="card"
+          style={{
+            padding: 48,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 16,
+          }}
+        >
+          <AlertCircle size={40} style={{ color: "var(--clay-400)" }} />
+          <p
+            style={{
+              color: "var(--clay-400)",
+              fontFamily: "var(--font-body)",
+              fontSize: 14,
+              fontWeight: 300,
+              margin: 0,
+            }}
+          >
+            {error}
+          </p>
+          <button onClick={fetchSources} className="btn btn-secondary">
+            <RefreshCw size={16} />
             Retry
           </button>
         </div>
@@ -167,28 +223,54 @@ export default function SourcesPage() {
 
   // ----- Main render -----
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-      {/* Top Bar */}
-      <div className="flex items-center justify-between">
+    <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px" }}>
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          marginBottom: 32,
+          flexWrap: "wrap",
+          gap: 16,
+        }}
+      >
         <div>
-          <h1 className="text-2xl font-bold text-white">Data Sources</h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <h1
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: 28,
+              fontWeight: 400,
+              fontStyle: "italic",
+              color: "var(--gold-400)",
+              margin: 0,
+              lineHeight: 1.2,
+            }}
+          >
+            Data Sources
+          </h1>
+          <p
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: 14,
+              color: "var(--text-muted)",
+              marginTop: 4,
+              fontWeight: 300,
+            }}
+          >
             {sources.length} source{sources.length !== 1 ? "s" : ""} connected
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button
             onClick={fetchSources}
-            className="p-2.5 rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400 hover:text-white hover:border-slate-600 transition-all"
+            className="btn btn-ghost"
             title="Refresh"
           >
-            <RefreshCw size={18} />
+            <RefreshCw size={16} />
           </button>
-          <Link
-            href="/sources/new"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 shadow-lg shadow-emerald-500/20 transition-all"
-          >
-            <Upload size={18} />
+          <Link href="/sources/new" className="btn btn-primary">
+            <Upload size={16} />
             Upload New
           </Link>
         </div>
@@ -196,98 +278,162 @@ export default function SourcesPage() {
 
       {/* Empty state */}
       {sources.length === 0 && (
-        <div className="glass p-12 text-center space-y-4">
-          <div className="text-5xl">📥</div>
-          <h2 className="text-lg font-bold text-white">No data sources yet</h2>
-          <p className="text-sm text-slate-400 max-w-md mx-auto">
-            Upload a CSV file, connect to an API, or link a database to start building your data lakehouse.
+        <div className="empty-state">
+          <h3>Belum ada data source</h3>
+          <p
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: 14,
+              color: "var(--text-muted)",
+              fontWeight: 300,
+              maxWidth: 360,
+              position: "relative",
+              margin: 0,
+            }}
+          >
+            Upload CSV atau connect API
           </p>
           <Link
             href="/sources/new"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition-all"
+            className="btn btn-primary"
+            style={{ position: "relative" }}
           >
-            <Upload size={18} />
-            Add Your First Source
+            <Upload size={16} />
+            Upload Source
           </Link>
         </div>
       )}
 
       {/* Source Cards Grid */}
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {sources.map((src) => (
-          <div
-            key={src.id}
-            className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur p-6 space-y-4 hover:border-emerald-500/30 transition-all group hover:-translate-y-1"
-          >
-            {/* Header row */}
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="text-3xl">{TYPE_ICON[src.type] ?? "📄"}</div>
-                <div>
-                  <h3 className="font-bold text-white text-sm leading-tight line-clamp-1">
-                    {src.name}
-                  </h3>
-                  <p className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">
-                    {TYPE_LABEL[src.type] ?? src.type}
-                  </p>
-                </div>
-              </div>
-              {statusBadge(src.status)}
-            </div>
-
-            {/* Stats row */}
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="p-2 rounded-lg bg-slate-950/60 border border-slate-800/50">
-                <p className="text-slate-500">Size</p>
-                <p className="text-slate-300 font-mono">{formatBytes(src.fileSize)}</p>
-              </div>
-              <div className="p-2 rounded-lg bg-slate-950/60 border border-slate-800/50">
-                <p className="text-slate-500">Rows</p>
-                <p className="text-slate-300 font-mono">
-                  {src.rowsCount != null ? src.rowsCount.toLocaleString() : "—"}
-                </p>
-              </div>
-              <div className="p-2 rounded-lg bg-slate-950/60 border border-slate-800/50">
-                <p className="text-slate-500">Columns</p>
-                <p className="text-slate-300 font-mono">
-                  {src.columnsCount != null ? src.columnsCount : "—"}
-                </p>
-              </div>
-              <div className="p-2 rounded-lg bg-slate-950/60 border border-slate-800/50">
-                <p className="text-slate-500">Last Sync</p>
-                <p className="text-slate-300 text-[10px] leading-tight">
-                  {formatDate(src.lastSyncAt)}
-                </p>
-              </div>
-            </div>
-
-            {/* File name + Actions */}
-            {src.fileName && (
-              <p className="text-[11px] text-slate-500 truncate flex items-center gap-1.5">
-                <FileText size={12} />
-                {src.fileName}
-              </p>
-            )}
-
-            {/* Action buttons */}
-            <div className="flex gap-2 pt-1">
-              <Link
-                href={`/pipelines/new?sourceId=${src.id}&sourceName=${encodeURIComponent(src.name)}`}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold hover:bg-emerald-500/20 transition-all"
+      {sources.length > 0 && (
+        <div
+          className="stagger"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: 16,
+          }}
+        >
+          {sources.map((src) => (
+            <div
+              key={src.id}
+              className="card pipeline-card source-card"
+              style={{
+                padding: 20,
+                display: "flex",
+                flexDirection: "column",
+                gap: 14,
+                position: "relative",
+              }}
+            >
+              {/* Source name + type badge */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  gap: 8,
+                }}
               >
-                ⚡ Create Pipeline
-              </Link>
-              <Link
-                href={`/sources/${src.id}`}
-                className="px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-400 text-xs font-semibold hover:bg-slate-700/50 hover:text-slate-300 transition-all"
+                <h3
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: 16,
+                    fontWeight: 500,
+                    color: "var(--text-primary)",
+                    margin: 0,
+                    lineHeight: 1.3,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    flex: 1,
+                    minWidth: 0,
+                  }}
+                >
+                  {src.name}
+                </h3>
+                <span
+                  className="badge badge-draft"
+                  style={{ flexShrink: 0 }}
+                >
+                  {TYPE_LABEL[src.type] ?? src.type}
+                </span>
+              </div>
+
+              {/* Meta: row count + created time */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: 20,
+                  fontSize: 13,
+                  fontFamily: "var(--font-body)",
+                  fontWeight: 300,
+                }}
               >
-                Preview
-              </Link>
-              <DeleteSourceButton sourceId={src.id} sourceName={src.name} onDeleted={handleSourceDeleted} />
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  <Rows3 size={14} />
+                  {src.rowsCount != null
+                    ? src.rowsCount.toLocaleString()
+                    : "\u2014"}
+                </span>
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  <Clock size={14} />
+                  {formatDate(src.createdAt)}
+                </span>
+              </div>
+
+              {/* Action buttons — always visible */}
+              <div
+                className="source-card-actions"
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  paddingTop: 10,
+                  borderTop: "1px solid var(--border-subtle)",
+                }}
+              >
+                <Link
+                  href={`/sources/${src.id}`}
+                  className="btn btn-ghost"
+                  style={{ padding: "6px 10px", fontSize: 12, gap: 5, flex: 1, justifyContent: "center" }}
+                  title="View details"
+                >
+                  <Eye size={14} />
+                  View
+                </Link>
+                <Link
+                  href={`/pipelines/new?sourceId=${src.id}&sourceName=${encodeURIComponent(src.name)}`}
+                  className="btn btn-primary"
+                  style={{ padding: "6px 12px", fontSize: 12, gap: 5, flex: 1, justifyContent: "center" }}
+                  title="Create pipeline from this source"
+                >
+                  <Zap size={14} />
+                  Pipeline
+                </Link>
+                <DeleteSourceButton
+                  sourceId={src.id}
+                  sourceName={src.name}
+                  onDeleted={handleSourceDeleted}
+                />
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

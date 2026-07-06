@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { authFetch, clearAuth } from "@/lib/auth-client";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
   LineChart, Line,
   AreaChart, Area,
-} from "recharts";
+} from "@/components/charts";
 
 interface Widget {
   id: number;
@@ -31,15 +32,20 @@ const CHART_COLORS = ["#10b981", "#f59e0b", "#3b82f6", "#ef4444", "#8b5cf6", "#e
 
 export default function PrintDashboardPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [widgetData, setWidgetData] = useState<Record<number, { rows: any[]; sql: string }>>({});
 
   useEffect(() => {
-    fetch("/api/dashboards/" + params.id)
+    authFetch("/api/dashboards/" + params.id)
       .then((r) => {
-        if (r.status === 401) throw new Error("Unauthorized");
+        if (r.status === 401) {
+          clearAuth();
+          router.push("/login");
+          return;
+        }
         return r.json();
       })
       .then((d: Dashboard) => {
@@ -71,7 +77,7 @@ export default function PrintDashboardPage() {
             }
           }
 
-          const res = await fetch("/api/dashboards/" + d.id + "/data", {
+          const res = await authFetch("/api/dashboards/" + d.id + "/data", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

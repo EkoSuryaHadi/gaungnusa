@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { parse } from "csv-parse/sync";
+import * as XLSX from "xlsx";
 
 export async function GET() {
   const session = await getSession();
@@ -33,9 +34,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "File and name are required" }, { status: 400 });
     }
 
-    if (!file.name.endsWith(".csv")) {
-      return NextResponse.json({ error: "Only CSV files are accepted" }, { status: 400 });
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!ext || !["csv", "xlsx", "xls"].includes(ext)) {
+      return NextResponse.json({ error: "Only CSV and Excel (.xlsx, .xls) files are accepted" }, { status: 400 });
     }
+
+    const fileType = ext === "csv" ? "CSV" : "EXCEL";
 
     const uploadDir = path.join(process.cwd(), "uploads");
     await mkdir(uploadDir, { recursive: true });
@@ -46,21 +50,28 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     await writeFile(filePath, buffer);
 
-    // Parse CSV to count rows and infer columns
-    const content = buffer.toString("utf-8");
+    // Parse file to count rows and columns
     let rowsCount = 0;
     let columnsCount = 0;
     try {
-      const records = parse(content, {
-        columns: true,
-        skip_empty_lines: true,
-        relax_column_count: true,
-        relax_quotes: true,
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const typed = records as any[];
-      rowsCount = typed.length;
-      columnsCount = typed.length > 0 ? Object.keys(typed[0]).length : 0;
+      if (fileType === "EXCEL") {
+        const workbook = XLSX.read(buffer, { type: "buffer" });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }) as any[][];
+        rowsCount = Math.max(0, data.length - 1); // minus header row
+        columnsCount = data.length > 0 ? (data[0] as any[]).length : 0;
+      } else {
+        const content = buffer.toString("utf-8");
+        const records = parse(content, {
+          columns: true,
+          skip_empty_lines: true,
+          relax_column_count: true,
+          relax_quotes: true,
+        });
+        const typed = records as any[];
+        rowsCount = typed.length;
+        columnsCount = typed.length > 0 ? Object.keys(typed[0]).length : 0;
+      }
     } catch (e) {
       // Parsing failed, still save the file
     }
@@ -70,7 +81,7 @@ export async function POST(req: NextRequest) {
         userId: session.userId,
         tenantId: session.tenantId ?? null,
         name,
-        type: "CSV",
+        type: fileType,
         fileName: file.name,
         fileSize: buffer.length,
         filePath: fileName,

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Play, Loader2 } from "lucide-react";
 
 export function RunPipelineButton({
   pipelineId,
@@ -18,16 +19,18 @@ export function RunPipelineButton({
     setRunning(true);
     setResult(null);
     try {
-      const res = await fetch(`/api/pipelines/${pipelineId}/run`, { method: "POST" });
+      const res = await fetch(`/api/pipelines/${pipelineId}/run`, {
+        method: "POST",
+      });
       const data = await res.json();
       if (res.ok) {
-        setResult(`✅ ${data.rowsOutput || 0} rows`);
+        setResult(`${data.rowsOutput || 0} rows`);
         router.refresh();
       } else {
-        setResult(`❌ ${data.error || "Failed"}`);
+        setResult(data.error || "Failed");
       }
     } catch (e: any) {
-      setResult(`❌ ${e.message}`);
+      setResult(e.message);
     } finally {
       setRunning(false);
     }
@@ -38,10 +41,22 @@ export function RunPipelineButton({
       <button
         onClick={handleRun}
         disabled={running}
-        className="w-full py-1.5 rounded-lg text-xs font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-all disabled:opacity-50"
+        className="btn btn-secondary w-full justify-center text-xs py-1.5 px-3"
         title={`Run ${pipelineName}`}
       >
-        {running ? "⏳ Running..." : result || "▶️ Run"}
+        {running ? (
+          <>
+            <Loader2 size={12} className="animate-spin" />
+            Running...
+          </>
+        ) : result ? (
+          result
+        ) : (
+          <>
+            <Play size={12} />
+            Run
+          </>
+        )}
       </button>
     </div>
   );

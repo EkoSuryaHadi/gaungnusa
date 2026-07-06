@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { authFetch } from "@/lib/auth-client";
 
 interface PipelineRun {
   id: number;
@@ -50,7 +51,7 @@ export default function PipelineDetailPage() {
   const [runResult, setRunResult] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/pipelines/${params.id}`)
+    authFetch(`/api/pipelines/${params.id}`)
       .then((r) => { if (r.status === 401) { router.push("/login"); return null; } return r.json(); })
       .then((d) => { if (d) setPipeline(d); })
       .finally(() => setLoading(false));
@@ -60,12 +61,12 @@ export default function PipelineDetailPage() {
     setRunning(true);
     setRunResult(null);
     try {
-      const res = await fetch(`/api/pipelines/${params.id}/run`, { method: "POST" });
+      const res = await authFetch(`/api/pipelines/${params.id}/run`, { method: "POST" });
       const data = await res.json();
       if (res.ok) {
         setRunResult(`✅ SUCCESS — ${data.rowsOutput || 0} rows written`);
         // Refresh
-        const r2 = await fetch(`/api/pipelines/${params.id}`);
+        const r2 = await authFetch(`/api/pipelines/${params.id}`);
         if (r2.ok) setPipeline(await r2.json());
       } else {
         setRunResult(`❌ FAILED: ${data.error || "Unknown error"}`);

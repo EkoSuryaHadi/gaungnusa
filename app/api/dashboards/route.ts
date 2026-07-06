@@ -12,12 +12,12 @@ export async function GET() {
       ...(session.tenantId ? { tenantId: session.tenantId } : {}),
     },
     include: {
-      widgets: { orderBy: { createdAt: "asc" } },
+      widgets: { select: { id: true } },
     },
     orderBy: { updatedAt: "desc" },
   });
 
-  return NextResponse.json(dashboards);
+  return NextResponse.json({ dashboards });
 }
 
 export async function POST(req: NextRequest) {

@@ -81,9 +81,33 @@ export async function POST(
       });
     }
 
-    // Register lakehouse table with column schema
-    if (result.success && result.rows > 0) {
-      const outputStep = pipeline.steps.find((s: any) => s.type === "OUTPUT");
+    // Register lakehouse tables for ALL output steps using per-output metadata
+    if (result.success && result.outputs && result.outputs.length > 0) {
+      for (const output of result.outputs) {
+        const columnsJson = JSON.stringify(output.columns || []);
+        await prisma.lakehouseTable.upsert({
+          where: {
+            layer_tableName: {
+              layer: output.layer.toUpperCase(),
+              tableName: output.table,
+            },
+          },
+          update: { rowsCount: output.rows, schema: columnsJson, updatedAt: new Date() },
+          create: {
+            layer: output.layer.toUpperCase(),
+            tableName: output.table,
+            displayName: output.table
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (c: string) => c.toUpperCase()),
+            schema: columnsJson,
+            rowsCount: output.rows,
+            ...(session.tenantId ? { tenantId: session.tenantId } : {}),
+          },
+        });
+      }
+    } else if (result.success && result.rows > 0) {
+      // Fallback for old runner: use single output metadata
+      const outputStep = pipeline.steps.find((s: any) => s.type === "OUTPUT" && s.outputLayer && s.outputTable);
       if (outputStep?.outputLayer && outputStep?.outputTable) {
         const columnsJson = JSON.stringify(result.columns || []);
         await prisma.lakehouseTable.upsert({
@@ -126,6 +150,7 @@ function runETL(configPath: string): Promise<{
   success: boolean;
   rows: number;
   columns: { name: string; type: string }[];
+  outputs?: { layer: string; table: string; rows: number; columns: { name: string; type: string }[] }[];
   logs: string;
   error: string | null;
 }> {

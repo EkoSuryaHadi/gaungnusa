@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { authFetch } from "@/lib/auth-client";
 
 interface TenantInfo {
   tenantId?: number;
@@ -11,7 +12,7 @@ export default function TenantSelector() {
   const [tenant, setTenant] = useState<TenantInfo>({});
 
   useEffect(() => {
-    fetch("/api/auth/session")
+    authFetch("/api/auth/session")
       .then((r) => r.json())
       .then((data) => {
         if (data.session) {

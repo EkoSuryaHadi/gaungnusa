@@ -1,10 +1,16 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { 
+  LineChart, BarChart3, PieChart, AreaChart, Gauge, Table2, Type,
+  LayoutDashboard, TrendingUp, PenTool, Trash2, Save, Eye, 
+  Grid3X3, AlignJustify, Palette, Maximize2, Plus
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Responsive, useContainerWidth } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
+import { authFetch, clearAuth } from "@/lib/auth-client";
 
 /* ──────────────────────────────────────────────
    Types & Constants
@@ -63,13 +69,13 @@ interface TemplateOption {
 }
 
 const WIDGET_TYPE_ICONS: Record<WidgetType, string> = {
-  LINE: "📈",
-  BAR: "📊",
-  PIE: "🥧",
-  AREA: "📉",
-  KPI: "🔢",
-  TABLE: "📋",
-  TEXT: "💬",
+  LINE: "LineChart",
+  BAR: "BarChart3",
+  PIE: "PieChart",
+  AREA: "AreaChart",
+  KPI: "Gauge",
+  TABLE: "Table2",
+  TEXT: "Type",
 };
 
 const WIDGET_TYPE_LABELS: Record<WidgetType, string> = {
@@ -83,20 +89,20 @@ const WIDGET_TYPE_LABELS: Record<WidgetType, string> = {
 };
 
 const PALETTE_ITEMS: { type: WidgetType; icon: string; label: string }[] = [
-  { type: "LINE", icon: "📈", label: "Line Chart" },
-  { type: "BAR", icon: "📊", label: "Bar Chart" },
-  { type: "PIE", icon: "🥧", label: "Pie Chart" },
-  { type: "AREA", icon: "📉", label: "Area Chart" },
-  { type: "KPI", icon: "🔢", label: "KPI Card" },
-  { type: "TABLE", icon: "📋", label: "Table" },
-  { type: "TEXT", icon: "💬", label: "Text" },
+  { type: "LINE", icon: "LineChart", label: "Line Chart" },
+  { type: "BAR", icon: "BarChart3", label: "Bar Chart" },
+  { type: "PIE", icon: "PieChart", label: "Pie Chart" },
+  { type: "AREA", icon: "AreaChart", label: "Area Chart" },
+  { type: "KPI", icon: "Gauge", label: "KPI Card" },
+  { type: "TABLE", icon: "Table2", label: "Table" },
+  { type: "TEXT", icon: "Type", label: "Text" },
 ];
 
 const DEFAULT_CONFIG: WidgetConfig = {
   dataSource: "",
   xField: "",
   yField: "",
-  color: "#10b981",
+  color: "#d4a853",
   aggregation: "SUM",
   kpiField: "",
   groupBy: "",
@@ -144,11 +150,11 @@ function PlaceholderChart({ type, color }: { type: WidgetType; color: string }) 
   if (type === "KPI") {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-2">
-        <span className="text-4xl">{icon}</span>
-        <span className="text-3xl font-bold" style={{ color }}>
-          1,337
+        <span style={{ color: "var(--gold-400)", fontSize: 28 }}><Gauge /></span>
+        <span className="text-3xl font-bold" style={{ color: color || "var(--gold-400)", fontFamily: "var(--font-display)" }}>
+          —
         </span>
-        <span className="text-xs text-slate-500">Sample KPI</span>
+        <span style={{ color: "var(--text-muted)", fontSize: 11 }}>Sample KPI</span>
       </div>
     );
   }
@@ -156,8 +162,8 @@ function PlaceholderChart({ type, color }: { type: WidgetType; color: string }) 
   if (type === "TABLE") {
     return (
       <div className="flex flex-col h-full overflow-hidden">
-        <div className="flex-1 flex items-center justify-center border border-dashed border-slate-700 rounded-lg m-2">
-          <span className="text-4xl">{icon}</span>
+        <div className="flex-1 flex items-center justify-center m-2" style={{ border: "1px dashed var(--border-default)", borderRadius: "var(--radius-md)" }}>
+          <span style={{ color: "var(--text-muted)", fontSize: 32 }}><Table2 /></span>
         </div>
       </div>
     );
@@ -165,9 +171,9 @@ function PlaceholderChart({ type, color }: { type: WidgetType; color: string }) 
 
   if (type === "TEXT") {
     return (
-      <div className="flex items-center justify-center h-full text-slate-400 text-sm italic">
+      <div className="flex items-center justify-center h-full" style={{ color: "var(--text-muted)", fontSize: 13, fontStyle: "italic" }}>
         <span>
-          {icon} Text block — click to edit content
+          <Type style={{ display: "inline", marginRight: 6, fontSize: 16 }} /> Text block — click to edit content
         </span>
       </div>
     );
@@ -175,8 +181,10 @@ function PlaceholderChart({ type, color }: { type: WidgetType; color: string }) 
 
   // LINE, BAR, PIE, AREA — chart placeholder
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-1">
-      <span className="text-3xl">{icon}</span>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 4 }}>
+      <div style={{ fontSize: 24, opacity: 0.4, color: "var(--text-muted)" }}>
+        {type === "LINE" ? <LineChart /> : type === "BAR" ? <BarChart3 /> : type === "PIE" ? <PieChart /> : <AreaChart />}
+      </div>
       <div className="flex items-end gap-[2px] h-12 mt-1">
         {[30, 55, 40, 70, 50, 65, 45, 60, 75, 50].map((h, i) => (
           <div
@@ -184,13 +192,13 @@ function PlaceholderChart({ type, color }: { type: WidgetType; color: string }) 
             className="w-[6px] rounded-t-sm"
             style={{
               height: `${h}%`,
-              backgroundColor: color,
-              opacity: 0.3 + (i / 10) * 0.7,
+              backgroundColor: color || "var(--gold-400)",
+              opacity: 0.25 + (i / 10) * 0.75,
             }}
           />
         ))}
       </div>
-      <span className="text-[10px] text-slate-500 mt-1">{label} preview</span>
+      <span style={{ color: "var(--text-muted)", fontSize: 10, marginTop: 4 }}>{label} preview</span>
     </div>
   );
 }
@@ -221,20 +229,24 @@ export default function NewDashboardPage() {
   const [widgetColumns, setWidgetColumns] = useState<ColumnInfo[]>([]);
   const [loadingWidgetColumns, setLoadingWidgetColumns] = useState(false);
 
+  // Distinct values for filter dropdown
+  const [distinctValues, setDistinctValues] = useState<string[]>([]);
+  const [loadingDistinctValues, setLoadingDistinctValues] = useState(false);
+
   const { width, containerRef } = useContainerWidth();
 
   const selectedWidget = widgets.find((w) => w.id === selectedWidgetId) ?? null;
 
   const TEMPLATES: TemplateOption[] = [
-    { id: "overview", icon: "📊", label: "Quick Overview", desc: "KPI cards + 1 chart + table. Cocok untuk lihat data sekilas.", layout: "overview" },
-    { id: "deep", icon: "📈", label: "Deep Analysis", desc: "KPI + bar + pie + trend. Cocok untuk analisa mendalam.", layout: "deep" },
-    { id: "table", icon: "📋", label: "Table Explorer", desc: "Full table + filter + row count. Cocok eksplorasi data.", layout: "table" },
-    { id: "custom", icon: "✏️", label: "Custom", desc: "Mulai dari grid kosong, tambah widget manual.", layout: "custom" },
+    { id: "overview", icon: "LayoutDashboard", label: "Quick Overview", desc: "KPI cards + 1 chart + table. Cocok untuk lihat data sekilas.", layout: "overview" },
+    { id: "deep", icon: "TrendingUp", label: "Deep Analysis", desc: "KPI + bar + pie + trend. Cocok untuk analisa mendalam.", layout: "deep" },
+    { id: "table", icon: "Table2", label: "Table Explorer", desc: "Full table + filter + row count. Cocok eksplorasi data.", layout: "table" },
+    { id: "custom", icon: "PenTool", label: "Custom", desc: "Mulai dari grid kosong, tambah widget manual.", layout: "custom" },
   ];
 
   /* ── Fetch tables on mount ── */
   useEffect(() => {
-    fetch("/api/lakehouse/tables")
+    authFetch("/api/lakehouse/tables")
       .then((r) => r.json())
       .then((data: TableOption[]) => {
         if (Array.isArray(data)) setTables(data);
@@ -250,7 +262,7 @@ export default function NewDashboardPage() {
 
     setLoadingColumns(true);
     try {
-      const res = await fetch(`/api/lakehouse/${layer}/${tableName}/schema`);
+      const res = await authFetch(`/api/lakehouse/${layer}/${tableName}/schema`);
       if (!res.ok) throw new Error("Schema fetch failed");
       const data = await res.json();
       const columns: ColumnInfo[] = (data.columns || []).map((c: any) => ({
@@ -278,7 +290,7 @@ export default function NewDashboardPage() {
 
     setLoadingWidgetColumns(true);
     try {
-      const res = await fetch(`/api/lakehouse/${layer}/${tableName}/schema`);
+      const res = await authFetch(`/api/lakehouse/${layer}/${tableName}/schema`);
       if (!res.ok) throw new Error("Schema fetch failed");
       const data = await res.json();
       const columns: ColumnInfo[] = (data.columns || []).map((c: any) => ({
@@ -304,20 +316,60 @@ export default function NewDashboardPage() {
     }
   }, [selectedWidget?.config?.dataSource, fetchWidgetColumns]);
 
+  /* ── Fetch distinct values for filter column ── */
+  const fetchDistinctValues = useCallback(async (dataSource: string, column: string) => {
+    if (!dataSource || !column) {
+      setDistinctValues([]);
+      return;
+    }
+    const [layer, ...rest] = dataSource.split("/");
+    const tableName = rest.join("/");
+    if (!layer || !tableName) return;
+
+    setLoadingDistinctValues(true);
+    try {
+      const res = await authFetch(`/api/lakehouse/${layer}/${tableName}/distinct?column=${encodeURIComponent(column)}&limit=100`);
+      if (!res.ok) throw new Error("Fetch failed");
+      const data = await res.json();
+      setDistinctValues(data.values || []);
+    } catch {
+      setDistinctValues([]);
+    } finally {
+      setLoadingDistinctValues(false);
+    }
+  }, []);
+
+  // Fetch distinct values when filter column changes
+  useEffect(() => {
+    if (selectedWidget?.config?.dataSource && selectedWidget?.config?.filterField) {
+      fetchDistinctValues(selectedWidget.config.dataSource, selectedWidget.config.filterField);
+    } else {
+      setDistinctValues([]);
+    }
+  }, [selectedWidget?.config?.dataSource, selectedWidget?.config?.filterField, fetchDistinctValues]);
+
   /* ── Detect column category from name + type ── */
   function detectColumnType(name: string, pgType: string): string {
     const dt = (pgType || "").toLowerCase();
+    const n = name.toLowerCase();
+
+    // Categorical override: int columns that are IDs/codes, not metrics
+    const categoricalNames = [
+      "category", "type", "status", "class", "tier", "region", "brand", "vendor",
+      "store", "size", "volume", "direction", "currency",
+    ];
+    const categoricalPatterns = [
+      /_id$/, /_no$/, /_account$/, /_code$/, /_key$/, /^id$/,
+    ];
+    const isCategorical = categoricalNames.some(k => n.includes(k)) ||
+      categoricalPatterns.some(p => p.test(n));
+    if (isCategorical) return "categorical";
+
     if (dt.includes("int") || dt.includes("float") || dt.includes("double") || dt.includes("numeric") || dt.includes("decimal"))
       return "numeric";
     if (dt.includes("timestamp") || dt.includes("date"))
       return "date";
 
-    const n = name.toLowerCase();
-    // Categorical: few unique values expected
-    if (n.includes("category") || n.includes("type") || n.includes("status") || n.includes("class") ||
-        n.includes("tier") || n.includes("region") || n.includes("brand") || n.includes("vendor") ||
-        n.includes("store") || n.includes("size") || n.includes("volume"))
-      return "categorical";
     return "text";
   }
 
@@ -353,7 +405,7 @@ export default function NewDashboardPage() {
             type: "BAR",
             title: `${numCols[0].name.replace(/_/g, " ")} by ${catCols[0].name.replace(/_/g, " ")}`,
             gridX: 0, gridY: 2, gridW: 6, gridH: 4,
-            config: { ...DEFAULT_CONFIG, dataSource, xField: catCols[0].name, yField: numCols[0].name, color: "#10b981" },
+            config: { ...DEFAULT_CONFIG, dataSource, xField: catCols[0].name, yField: numCols[0].name, color: "#d4a853" },
           });
         }
         // Row 2 right: Table
@@ -362,7 +414,7 @@ export default function NewDashboardPage() {
           type: "TABLE",
           title: "Data Preview",
           gridX: 6, gridY: 2, gridW: 6, gridH: 4,
-          config: { ...DEFAULT_CONFIG, dataSource, xField: "", yField: "", color: "#6366f1" },
+          config: { ...DEFAULT_CONFIG, dataSource, xField: "", yField: "", color: "#d4a853" },
         });
       } else if (template.layout === "deep") {
         // KPI header row
@@ -383,7 +435,7 @@ export default function NewDashboardPage() {
             type: "BAR",
             title: `${numCols[0].name.replace(/_/g, " ")} by ${catCols[0].name.replace(/_/g, " ")}`,
             gridX: 0, gridY: 2, gridW: 6, gridH: 4,
-            config: { ...DEFAULT_CONFIG, dataSource, xField: catCols[0].name, yField: numCols[0].name, color: "#10b981" },
+            config: { ...DEFAULT_CONFIG, dataSource, xField: catCols[0].name, yField: numCols[0].name, color: "#d4a853" },
           });
         }
         // Pie chart
@@ -393,7 +445,7 @@ export default function NewDashboardPage() {
             type: "PIE",
             title: `${catCols[0].name.replace(/_/g, " ")} Distribution`,
             gridX: 6, gridY: 2, gridW: 6, gridH: 4,
-            config: { ...DEFAULT_CONFIG, dataSource, xField: catCols[0].name, yField: numCols.length > 1 ? numCols[1].name : numCols[0].name, color: "#f59e0b" },
+            config: { ...DEFAULT_CONFIG, dataSource, xField: catCols[0].name, yField: numCols.length > 1 ? numCols[1].name : numCols[0].name, color: "#c4724f" },
           });
         }
         // Trend line (date)
@@ -403,7 +455,7 @@ export default function NewDashboardPage() {
             type: "LINE",
             title: `${numCols[0].name.replace(/_/g, " ")} Trend`,
             gridX: 0, gridY: 6, gridW: 12, gridH: 4,
-            config: { ...DEFAULT_CONFIG, dataSource, xField: dateCols[0].name, yField: numCols[0].name, color: "#3b82f6" },
+            config: { ...DEFAULT_CONFIG, dataSource, xField: dateCols[0].name, yField: numCols[0].name, color: "#8a9b7a" },
           });
         }
       } else if (template.layout === "table") {
@@ -413,7 +465,7 @@ export default function NewDashboardPage() {
           type: "KPI",
           title: "Total Rows",
           gridX: 0, gridY: 0, gridW: 3, gridH: 2,
-          config: { ...DEFAULT_CONFIG, dataSource, xField: "COUNT(*)", yField: "", kpiField: "*", aggregation: "COUNT", color: "#10b981" },
+          config: { ...DEFAULT_CONFIG, dataSource, xField: "COUNT(*)", yField: "", kpiField: "*", aggregation: "COUNT", color: "#d4a853" },
         });
         // Column count
         widgets.push({
@@ -421,7 +473,7 @@ export default function NewDashboardPage() {
           type: "KPI",
           title: "Columns",
           gridX: 3, gridY: 0, gridW: 3, gridH: 2,
-          config: { ...DEFAULT_CONFIG, dataSource, xField: columns.length.toString(), yField: "", color: "#6366f1" },
+          config: { ...DEFAULT_CONFIG, dataSource, xField: columns.length.toString(), yField: "", color: "#d4a853" },
         });
         // Full table
         widgets.push({
@@ -429,7 +481,7 @@ export default function NewDashboardPage() {
           type: "TABLE",
           title: "Data Table",
           gridX: 0, gridY: 2, gridW: 12, gridH: 6,
-          config: { ...DEFAULT_CONFIG, dataSource, xField: "", yField: "", color: "#8b5cf6" },
+          config: { ...DEFAULT_CONFIG, dataSource, xField: "", yField: "", color: "#8a9b7a" },
         });
       }
 
@@ -548,7 +600,7 @@ export default function NewDashboardPage() {
     if (isNaN(id)) return;
 
     setEditingId(id);
-    fetch("/api/dashboards/" + id)
+    authFetch("/api/dashboards/" + id)
       .then((r) => r.json())
       .then((data) => {
         if (data && data.name) {
@@ -587,7 +639,7 @@ export default function NewDashboardPage() {
 
       if (editingId) {
         id = editingId;
-        const putRes = await fetch("/api/dashboards/" + id, {
+        const putRes = await authFetch("/api/dashboards/" + id, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -609,7 +661,7 @@ export default function NewDashboardPage() {
         }
         setSaveMessage("✅ Dashboard updated!");
       } else {
-        const createRes = await fetch("/api/dashboards", {
+        const createRes = await authFetch("/api/dashboards", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: name.trim() }),
@@ -621,7 +673,7 @@ export default function NewDashboardPage() {
         const created = await createRes.json();
         id = created.id;
 
-        const putRes = await fetch("/api/dashboards/" + id, {
+        const putRes = await authFetch("/api/dashboards/" + id, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -655,61 +707,113 @@ export default function NewDashboardPage() {
   const cols = Math.max(1, Math.floor((width || 1200) / 95));
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "32px 24px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            🛠️ Dashboard Builder
-            {editingId && <span className="text-sm text-amber-400 font-normal">(Editing #{editingId})</span>}
+          <h1 style={{ 
+            fontFamily: "var(--font-display)", fontSize: 28, fontStyle: "italic",
+            color: "var(--gold-400)", margin: 0, display: "flex", alignItems: "center", gap: 10 
+          }}>
+            Dashboard Builder
+            {editingId && <span style={{ fontSize: 14, color: "var(--text-secondary)", fontStyle: "normal", fontFamily: "var(--font-body)", fontWeight: 400 }}>(Editing #{editingId})</span>}
           </h1>
         </div>
-        <div className="flex items-center gap-2">
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Dashboard name…" className="px-4 py-2 rounded-xl text-sm focus:outline-none w-64" style={{ backgroundColor: "rgba(30,41,59,0.8)", border: "1px solid rgba(51,65,85,0.6)", color: "#e2e8f0" }} />
-          <button onClick={handleSave} disabled={saving} className="px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm font-medium hover:bg-emerald-500/30 disabled:opacity-50">
-            {saving ? "Saving…" : editingId ? "💾 Update Dashboard" : "💾 Save Dashboard"}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Dashboard name…" 
+            className="input" style={{ width: 260 }} />
+          <button onClick={handleSave} disabled={saving} className="btn btn-primary">
+            <Save style={{ width: 15, height: 15 }} />
+            {saving ? "Saving…" : editingId ? "Update" : "Save"}
           </button>
-          {savedId && <a href={"/dashboards/" + savedId} className="px-3 py-2 rounded-xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 text-sm hover:bg-indigo-500/30">View →</a>}
+          {savedId && <a href={"/dashboards/" + savedId} className="btn btn-secondary"><Eye style={{ width: 14, height: 14 }} />View</a>}
         </div>
       </div>
-      {saveMessage && <div className={"text-sm px-4 py-2 rounded-xl " + (saveMessage.includes("✅") ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400")}>{saveMessage}</div>}
-      <div className="flex gap-6" ref={containerRef}>
-        <div className="w-48 shrink-0 space-y-3">
-          <h2 className="text-xs uppercase tracking-wider text-slate-500 font-semibold">WIDGET PALETTE</h2>
-          <div className="space-y-2">
+      {saveMessage && (
+        <div style={{
+          padding: "8px 16px", borderRadius: "var(--radius-md)", marginBottom: 16, fontSize: 13,
+          background: saveMessage.includes("✅") ? "var(--gold-dim)" : "var(--clay-dim)",
+          color: saveMessage.includes("✅") ? "var(--gold-400)" : "var(--clay-400)"
+        }}>{saveMessage.replace("✅ ", "").replace("❌ ", "")}</div>
+      )}
+      <div style={{ display: "flex", gap: 24 }} ref={containerRef}>
+        <div style={{ width: 180, flexShrink: 0 }}>
+          <h2 style={{ 
+            fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em",
+            color: "var(--text-muted)", fontWeight: 600, marginBottom: 12 
+          }}>Widget Palette</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {PALETTE_ITEMS.map((item) => (
-              <button key={item.type} onClick={() => addWidget(item.type)} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-700/50 bg-slate-800/40 text-sm text-slate-300 hover:bg-slate-700/50 hover:border-emerald-500/30 transition-all">
-                <span className="text-lg">{item.icon}</span><span>{item.label}</span>
+              <button key={item.type} onClick={() => addWidget(item.type)}
+                className="btn btn-ghost" style={{ 
+                  justifyContent: "flex-start", fontSize: 13, width: "100%",
+                  padding: "8px 12px", borderRadius: "var(--radius-md)"
+                }}>
+                <span style={{ fontSize: 16, opacity: 0.7 }}>
+                  {item.icon === "LineChart" ? <LineChart style={{ width: 16, height: 16 }} /> : 
+                   item.icon === "BarChart3" ? <BarChart3 style={{ width: 16, height: 16 }} /> :
+                   item.icon === "PieChart" ? <PieChart style={{ width: 16, height: 16 }} /> :
+                   item.icon === "AreaChart" ? <AreaChart style={{ width: 16, height: 16 }} /> :
+                   item.icon === "Gauge" ? <Gauge style={{ width: 16, height: 16 }} /> :
+                   item.icon === "Table2" ? <Table2 style={{ width: 16, height: 16 }} /> :
+                   <Type style={{ width: 16, height: 16 }} />}
+                </span>
+                <span>{item.label}</span>
               </button>
             ))}
           </div>
           {widgets.length > 1 && (
-            <div className="pt-4 border-t border-slate-800">
-              <h2 className="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-2">QUICK ARRANGE</h2>
-              <div className="flex gap-1">
-                <button onClick={autoArrange} className="flex-1 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 text-xs hover:bg-slate-700">🔲 Grid</button>
-                <button onClick={stackVertical} className="flex-1 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 text-xs hover:bg-slate-700">⬇️ Stack</button>
+            <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid var(--border-subtle)" }}>
+              <h2 style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", fontWeight: 600, marginBottom: 8 }}>Arrange</h2>
+              <div style={{ display: "flex", gap: 4 }}>
+                <button onClick={autoArrange} className="btn btn-ghost" style={{ flex: 1, fontSize: 11, padding: "6px 8px", justifyContent: "center" }}>
+                  <Grid3X3 style={{ width: 12, height: 12 }} /> Grid
+                </button>
+                <button onClick={stackVertical} className="btn btn-ghost" style={{ flex: 1, fontSize: 11, padding: "6px 8px", justifyContent: "center" }}>
+                  <AlignJustify style={{ width: 12, height: 12 }} /> Stack
+                </button>
               </div>
-              <p className="text-[10px] text-slate-600 mt-1.5 text-center">{widgets.length} widgets</p>
+              <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 6, textAlign: "center" }}>{widgets.length} widgets</p>
             </div>
           )}
         </div>
-        <div className="flex-1 min-w-0">
+        <div style={{ flex: 1, minWidth: 0 }}>
           {showTemplates && (
-            <div className="glass p-6 rounded-xl border border-slate-800 space-y-4">
-              <div><span className="text-2xl mr-2">🎯</span><h2 className="text-lg font-semibold text-white inline">Pilih Tabel and Template Dashboard</h2><p className="text-sm text-slate-400 mt-1">Pilih tabel lakehouse, lalu pilih template — widget auto-generated berdasarkan struktur data</p></div>
-              <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">📋 Tabel Lakehouse</span>
-                <select value={selectedTableKey} onChange={(e) => { setSelectedTableKey(e.target.value); if (e.target.value) fetchTableSchema(e.target.value); }} className="px-3 py-2 rounded-lg text-sm focus:outline-none" style={{ backgroundColor: "rgba(30,41,59,0.8)", border: "1px solid rgba(51,65,85,0.6)", color: "#e2e8f0" }}>
-                  <option value="">-- Pilih tabel --</option>
+            <div className="card-raised" style={{ padding: 24, marginBottom: 16 }}>
+              <div style={{ marginBottom: 20 }}>
+                <h2 style={{ 
+                  fontFamily: "var(--font-display)", fontSize: 20, fontStyle: "italic",
+                  color: "var(--gold-400)", margin: "0 0 6px 0"
+                }}>Mulai dari Data</h2>
+                <p style={{ color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>
+                  Pilih tabel lakehouse, lalu pilih template — widget auto-generated berdasarkan struktur data
+                </p>
+              </div>
+              <div className="select-wrap" style={{ maxWidth: 420, marginBottom: 16 }}>
+                <select value={selectedTableKey} onChange={(e) => { setSelectedTableKey(e.target.value); if (e.target.value) fetchTableSchema(e.target.value); }}>
+                  <option value="">Pilih tabel lakehouse…</option>
                   {tables.map((t) => <option key={t.layer + "/" + t.tableName} value={t.layer + "/" + t.tableName}>{t.displayName || t.tableName} ({t.layer} · {t.rowsCount || 0} rows)</option>)}
-                </select></label>
-              {loadingColumns && <p className="text-sm text-slate-500">Loading columns…</p>}
+                </select>
+              </div>
+              {loadingColumns && <div className="skeleton" style={{ width: 200, height: 16, borderRadius: "var(--radius-sm)" }} />}
               {!loadingColumns && tableColumns.length > 0 && (
-                <div className="space-y-3">
-                  <p className="text-xs text-slate-500">{tableColumns.length} columns · {tableColumns.filter(c => c.type === "numeric").length} numeric · {tableColumns.filter(c => c.type === "date").length} date</p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div>
+                  <p style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 12 }}>
+                    {tableColumns.length} columns · {tableColumns.filter(c => c.type === "numeric").length} numeric · {tableColumns.filter(c => c.type === "date").length} date
+                  </p>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 8 }}>
                     {TEMPLATES.map((tmpl) => (
-                      <button key={tmpl.id} onClick={() => generateWidgets(selectedTableKey, tableColumns, tmpl)} className="p-3 rounded-xl border border-slate-700 bg-slate-800/40 hover:bg-slate-700/50 hover:border-emerald-500/30 text-left transition-all">
-                        <div className="text-2xl mb-1">{tmpl.icon}</div><div className="text-sm font-medium text-white">{tmpl.label}</div><div className="text-[10px] text-slate-400 leading-tight mt-0.5">{tmpl.desc}</div>
+                      <button key={tmpl.id} onClick={() => generateWidgets(selectedTableKey, tableColumns, tmpl)}
+                        className="card" style={{
+                          padding: 14, textAlign: "left", cursor: "pointer",
+                          background: "var(--bg-surface)", border: "1px solid var(--border-subtle)"
+                        }}>
+                        <div style={{ fontSize: 20, color: "var(--gold-400)", marginBottom: 6, opacity: 0.7 }}>
+                          {tmpl.icon === "LayoutDashboard" ? <LayoutDashboard /> : 
+                           tmpl.icon === "TrendingUp" ? <TrendingUp /> : 
+                           tmpl.icon === "Table2" ? <Table2 /> : <PenTool />}
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)", fontFamily: "var(--font-display)" }}>{tmpl.label}</div>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2, lineHeight: 1.4 }}>{tmpl.desc}</div>
                       </button>
                     ))}
                   </div>
@@ -718,22 +822,39 @@ export default function NewDashboardPage() {
             </div>
           )}
           {!showTemplates && (
-            <div className="min-h-[400px]">
+            <div style={{ minHeight: 400 }}>
               {widgets.length === 0 ? (
-                <div className="flex items-center justify-center h-64 text-slate-500"><div className="text-center"><p className="text-4xl mb-3">📋</p><p className="text-sm">Add widgets from the palette or go back to templates</p><button onClick={() => setShowTemplates(true)} className="mt-3 text-xs text-emerald-400 hover:underline">← Back to templates</button></div></div>
+                <div className="empty-state">
+                  <h3>Tambahkan widget</h3>
+                  <p style={{ color: "var(--text-muted)", fontSize: 13 }}>Pilih widget dari palette atau kembali ke template</p>
+                  <button onClick={() => setShowTemplates(true)} className="btn btn-ghost">← Kembali ke template</button>
+                </div>
               ) : (
                 // @ts-expect-error react-grid-layout types
                 <Responsive className="layout" layouts={{ lg: widgets.map(w => ({ i: w.id, x: w.gridX, y: w.gridY, w: w.gridW, h: w.gridH, minW: 2, minH: 1 })) }} breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }} cols={{ lg: cols, md: 10, sm: 6, xs: 4, xxs: 2 }} rowHeight={90} onLayoutChange={(layout) => onLayoutChange(layout)} draggableHandle=".drag-handle" isResizable={true} compactType="vertical" margin={[8, 8]}>
                   {widgets.map((w) => (
-                    <div key={w.id} className={"glass border rounded-xl overflow-hidden cursor-default " + (selectedWidgetId === w.id ? "border-emerald-500/40 shadow-lg shadow-emerald-500/5" : "border-slate-800 hover:border-slate-700")} onClick={() => setSelectedWidgetId(w.id)}>
-                      <div className="drag-handle flex items-center justify-between px-3 py-2 border-b border-slate-800/50 bg-slate-900/40 cursor-grab active:cursor-grabbing">
-                        <span className="text-xs font-medium text-slate-300 truncate">{w.title}</span>
-                        <div className="flex items-center gap-1">
-                          <span className="text-[10px] text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">{WIDGET_TYPE_LABELS[w.type]}</span>
-                          <button onClick={(e) => { e.stopPropagation(); removeWidget(w.id); }} className="text-slate-600 hover:text-red-400 text-xs px-1">✕</button>
+                    <div key={w.id} onClick={() => setSelectedWidgetId(w.id)}
+                     style={{
+                       cursor: "default",
+                       borderRadius: "var(--radius-lg)",
+                       border: selectedWidgetId === w.id ? "1px solid var(--gold-500)" : "1px solid var(--border-subtle)",
+                       boxShadow: selectedWidgetId === w.id ? "var(--shadow-glow)" : "var(--shadow-card)",
+                       background: "var(--bg-surface)",
+                       overflow: "hidden",
+                       transition: "all 200ms"
+                     }}>
+                      <div className="drag-handle" style={{
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                        padding: "6px 10px", borderBottom: "1px solid var(--border-subtle)",
+                        background: "var(--bg-elevated)", cursor: "grab"
+                      }}>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{w.title}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <span className="badge badge-draft">{WIDGET_TYPE_LABELS[w.type]}</span>
+                          <button onClick={(e) => { e.stopPropagation(); removeWidget(w.id); }} style={{ color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", fontSize: 13, padding: 0 }}><Trash2 style={{ width: 12, height: 12 }} /></button>
                         </div>
                       </div>
-                      <div className="p-2 h-[calc(100%-36px)]"><PlaceholderChart type={w.type} color={w.config.color} /></div>
+                      <div style={{ padding: 8, height: "calc(100% - 37px)" }}><PlaceholderChart type={w.type} color={w.config.color} /></div>
                     </div>
                   ))}
                 </Responsive>
@@ -742,79 +863,188 @@ export default function NewDashboardPage() {
           )}
         </div>
         {selectedWidget && (
-          <div className="w-72 shrink-0 space-y-3">
-            <h2 className="text-xs uppercase tracking-wider text-slate-500 font-semibold">⚙️ WIDGET CONFIG</h2>
-            <div className="glass p-3 rounded-xl border border-slate-800 space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto">
-              <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">Title</span><input type="text" value={selectedWidget.title} onChange={(e) => updateWidget(selectedWidget.id, { title: e.target.value })} className="px-3 py-1.5 rounded-lg text-sm focus:outline-none" style={{ backgroundColor: "rgba(30,41,59,0.8)", border: "1px solid rgba(51,65,85,0.6)", color: "#e2e8f0" }} /></label>
-              <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">Type</span><select value={selectedWidget.type} onChange={(e) => updateWidget(selectedWidget.id, { type: e.target.value as WidgetType })} className="px-3 py-1.5 rounded-lg text-sm focus:outline-none" style={{ backgroundColor: "rgba(30,41,59,0.8)", border: "1px solid rgba(51,65,85,0.6)", color: "#e2e8f0" }}>{PALETTE_ITEMS.map(p => <option key={p.type} value={p.type}>{p.icon} {p.label}</option>)}</select></label>
-              <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">Data Source</span><select value={selectedWidget.config.dataSource} onChange={(e) => updateWidgetConfig(selectedWidget.id, { dataSource: e.target.value })} className="px-3 py-1.5 rounded-lg text-sm focus:outline-none" style={{ backgroundColor: "rgba(30,41,59,0.8)", border: "1px solid rgba(51,65,85,0.6)", color: "#e2e8f0" }}><option value="">-- Pilih sumber --</option>{tables.map(t => <option key={t.layer + "/" + t.tableName} value={t.layer + "/" + t.tableName}>{t.displayName || t.tableName}</option>)}</select></label>
+          <div style={{ width: 280, flexShrink: 0 }}>
+            <h2 style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", fontWeight: 600, marginBottom: 10 }}>Widget Config</h2>
+            <div className="card" style={{ padding: 14, maxHeight: "calc(100vh - 220px)", overflowY: "auto" }}>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}>
+                <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>Title</span>
+                <input type="text" value={selectedWidget.title} onChange={(e) => updateWidget(selectedWidget.id, { title: e.target.value })} className="input" style={{ fontSize: 12, padding: "7px 10px" }} />
+              </label>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}>
+                <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>Type</span>
+                <div className="select-wrap">
+                  <select value={selectedWidget.type} onChange={(e) => updateWidget(selectedWidget.id, { type: e.target.value as WidgetType })} style={{ fontSize: 12, padding: "7px 10px" }}>
+                    {PALETTE_ITEMS.map(p => <option key={p.type} value={p.type}>{p.label}</option>)}
+                  </select>
+                </div>
+              </label>
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}>
+                <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>Data Source</span>
+                <div className="select-wrap">
+                  <select value={selectedWidget.config.dataSource} onChange={(e) => updateWidgetConfig(selectedWidget.id, { dataSource: e.target.value })} style={{ fontSize: 12, padding: "7px 10px" }}>
+                    <option value="">Pilih sumber…</option>
+                    {tables.map(t => <option key={t.layer + "/" + t.tableName} value={t.layer + "/" + t.tableName}>{t.displayName || t.tableName}</option>)}
+                  </select>
+                </div>
+              </label>
 
               {/* KPI-specific config */}
               {selectedWidget.type === "KPI" && widgetColumns.length > 0 && (
-                <div className="space-y-4 border border-slate-700/50 rounded-xl p-3 bg-slate-900/30">
-                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">🔢 KPI Settings</p>
-                  <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">Value Column</span>
-                    <select value={selectedWidget.config.kpiField} onChange={(e) => updateWidgetConfig(selectedWidget.id, { kpiField: e.target.value, xField: e.target.value })} className="px-3 py-1.5 rounded-lg text-sm focus:outline-none" style={{ backgroundColor: "rgba(30,41,59,0.8)", border: "1px solid rgba(51,65,85,0.6)", color: "#e2e8f0" }}>
-                      <option value="">-- Pilih kolom --</option>
-                      {widgetColumns.filter(c => c.type === "numeric" || c.type === "date").map(c => <option key={c.name} value={c.name}>{c.type === "numeric" ? "🔢" : "📅"} {c.name} ({c.type})</option>)}
-                      {widgetColumns.filter(c => c.type === "text" || c.type === "categorical").map(c => <option key={c.name} value={c.name}>📝 {c.name} ({c.type})</option>)}
-                    </select></label>
-                  <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">Aggregation</span>
-                    <select value={selectedWidget.config.aggregation} onChange={(e) => updateWidgetConfig(selectedWidget.id, { aggregation: e.target.value, yField: e.target.value })} className="px-3 py-1.5 rounded-lg text-sm focus:outline-none" style={{ backgroundColor: "rgba(30,41,59,0.8)", border: "1px solid rgba(51,65,85,0.6)", color: "#e2e8f0" }}>
-                      <option value="SUM">SUM — Total</option><option value="AVG">AVG — Rata-rata</option><option value="COUNT">COUNT — Jumlah baris</option><option value="MIN">MIN — Nilai minimum</option><option value="MAX">MAX — Nilai maksimum</option>
-                    </select></label>
-                  <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">Group By (optional)</span>
-                    <select value={selectedWidget.config.groupBy} onChange={(e) => updateWidgetConfig(selectedWidget.id, { groupBy: e.target.value })} className="px-3 py-1.5 rounded-lg text-sm focus:outline-none" style={{ backgroundColor: "rgba(30,41,59,0.8)", border: "1px solid rgba(51,65,85,0.6)", color: "#e2e8f0" }}>
-                      <option value="">-- Tidak pakai group --</option>
-                      {widgetColumns.filter(c => c.type === "categorical" || c.type === "text").map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                    </select></label>
-                  <div className="border-t border-slate-700/30 pt-4 mt-2">
-                    <p className="text-[10px] uppercase tracking-wider text-amber-400 font-semibold mb-2">🔍 Filter (WHERE)</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <label className="flex flex-col gap-1"><span className="text-[10px] text-slate-400">Column</span>
-                        <select value={selectedWidget.config.filterField} onChange={(e) => updateWidgetConfig(selectedWidget.id, { filterField: e.target.value })} className="px-2 py-1.5 rounded-lg text-xs focus:outline-none" style={{ backgroundColor: "rgba(30,41,59,0.8)", border: "1px solid rgba(51,65,85,0.6)", color: "#e2e8f0" }}>
-                          <option value="">-- All data --</option>
-                          {widgetColumns.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                        </select></label>
-                      <label className="flex flex-col gap-1"><span className="text-[10px] text-slate-400">Value</span>
-                        <input type="text" value={selectedWidget.config.filterValue} onChange={(e) => updateWidgetConfig(selectedWidget.id, { filterValue: e.target.value })} placeholder="e.g. Matched" className="px-2 py-1.5 rounded-lg text-xs focus:outline-none" style={{ backgroundColor: "rgba(30,41,59,0.8)", border: "1px solid rgba(51,65,85,0.6)", color: "#e2e8f0" }} />
+                <div style={{ padding: 12, marginBottom: 10, borderRadius: "var(--radius-md)", background: "var(--bg-root)", border: "1px solid var(--border-subtle)" }}>
+                  <p style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--gold-400)", fontWeight: 600, marginBottom: 10 }}>KPI Settings</p>
+                  <label style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 8 }}>
+                    <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>Value Column</span>
+                    <div className="select-wrap">
+                      <select value={selectedWidget.config.kpiField} onChange={(e) => updateWidgetConfig(selectedWidget.id, { kpiField: e.target.value, xField: e.target.value })} style={{ fontSize: 12, padding: "7px 10px" }}>
+                        <option value="">Pilih kolom…</option>
+                        {widgetColumns.filter(c => c.type === "numeric" || c.type === "date").map(c => <option key={c.name} value={c.name}>{c.name} ({c.type})</option>)}
+                        {widgetColumns.filter(c => c.type === "text" || c.type === "categorical").map(c => <option key={c.name} value={c.name}>{c.name} ({c.type})</option>)}
+                      </select>
+                    </div>
+                  </label>
+                  <label style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 8 }}>
+                    <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>Aggregation</span>
+                    <div className="select-wrap">
+                      <select value={selectedWidget.config.aggregation} onChange={(e) => updateWidgetConfig(selectedWidget.id, { aggregation: e.target.value, yField: e.target.value })} style={{ fontSize: 12, padding: "7px 10px" }}>
+                        <option value="SUM">SUM — Total</option>
+                        <option value="AVG">AVG — Rata-rata</option>
+                        <option value="COUNT">COUNT — Jumlah baris</option>
+                        <option value="MIN">MIN — Minimum</option>
+                        <option value="MAX">MAX — Maksimum</option>
+                      </select>
+                    </div>
+                  </label>
+                  <label style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 8 }}>
+                    <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>Group By (optional)</span>
+                    <div className="select-wrap">
+                      <select value={selectedWidget.config.groupBy} onChange={(e) => updateWidgetConfig(selectedWidget.id, { groupBy: e.target.value })} style={{ fontSize: 12, padding: "7px 10px" }}>
+                        <option value="">Tanpa group</option>
+                        {widgetColumns.filter(c => c.type === "categorical" || c.type === "text").map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                      </select>
+                    </div>
+                  </label>
+                  <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: 12, marginTop: 8 }}>
+                    <p style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--gold-400)", fontWeight: 600, marginBottom: 8 }}>Filter (WHERE)</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                      <label style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                        <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Column</span>
+                        <div className="select-wrap">
+                          <select value={selectedWidget.config.filterField} onChange={(e) => updateWidgetConfig(selectedWidget.id, { filterField: e.target.value, filterValue: "" })} style={{ fontSize: 11, padding: "5px 8px" }}>
+                            <option value="">All data</option>
+                            {widgetColumns.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                          </select>
+                        </div>
+                      </label>
+                      <label style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                        <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Value</span>
+                        {selectedWidget.config.filterField ? (
+                          loadingDistinctValues ? (
+                            <span style={{ fontSize: 11, color: "var(--text-muted)", padding: "5px 8px" }}>Loading…</span>
+                          ) : distinctValues.length > 0 ? (
+                            <div className="select-wrap">
+                              <select value={selectedWidget.config.filterValue} onChange={(e) => updateWidgetConfig(selectedWidget.id, { filterValue: e.target.value })} style={{ fontSize: 11, padding: "5px 8px" }}>
+                                <option value="">All</option>
+                                {distinctValues.map(v => <option key={v} value={String(v)}>{String(v)}</option>)}
+                              </select>
+                            </div>
+                          ) : (
+                            <input type="text" value={selectedWidget.config.filterValue} onChange={(e) => updateWidgetConfig(selectedWidget.id, { filterValue: e.target.value })} placeholder="Type…" className="input" style={{ fontSize: 11, padding: "5px 8px" }} />
+                          )
+                        ) : (
+                          <input type="text" value="" placeholder="Select column first" disabled className="input" style={{ fontSize: 11, padding: "5px 8px", opacity: 0.4 }} />
+                        )}
                       </label>
                     </div>
                   </div>
                 </div>
               )}
-              {/* Chart-specific axis fields */}
+              {/* Chart axis fields */}
               {selectedWidget.type !== "KPI" && selectedWidget.type !== "TEXT" && widgetColumns.length > 0 && (
-                <div className="space-y-4 border border-slate-700/50 rounded-xl p-3 bg-slate-900/30">
-                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">{selectedWidget.type === "TABLE" ? "📋 Column Settings" : "📊 Axis Fields"}</p>
-                  <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">{selectedWidget.type === "PIE" ? "Labels (X-axis)" : selectedWidget.type === "TABLE" ? "Columns to show" : "X-axis Field"}</span>
-                    <select value={selectedWidget.config.xField} onChange={(e) => updateWidgetConfig(selectedWidget.id, { xField: e.target.value })} className="px-3 py-1.5 rounded-lg text-sm focus:outline-none" style={{ backgroundColor: "rgba(30,41,59,0.8)", border: "1px solid rgba(51,65,85,0.6)", color: "#e2e8f0" }}>
-                      <option value="">-- Pilih kolom --</option>
-                      {selectedWidget.type === "LINE" || selectedWidget.type === "AREA" ? widgetColumns.filter(c => c.type === "date" || c.type === "numeric").map(c => <option key={c.name} value={c.name}>{c.name} ({c.type})</option>) : widgetColumns.filter(c => c.type !== "date").map(c => <option key={c.name} value={c.name}>{c.name} ({c.type})</option>)}
-                    </select></label>
+                <div style={{ padding: 12, marginBottom: 10, borderRadius: "var(--radius-md)", background: "var(--bg-root)", border: "1px solid var(--border-subtle)" }}>
+                  <p style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--gold-400)", fontWeight: 600, marginBottom: 10 }}>
+                    {selectedWidget.type === "TABLE" ? "Columns" : "Axis Fields"}
+                  </p>
+                  <label style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 8 }}>
+                    <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                      {selectedWidget.type === "PIE" ? "Labels" : selectedWidget.type === "TABLE" ? "Show columns" : "X-axis"}
+                    </span>
+                    <div className="select-wrap">
+                      <select value={selectedWidget.config.xField} onChange={(e) => updateWidgetConfig(selectedWidget.id, { xField: e.target.value })} style={{ fontSize: 12, padding: "7px 10px" }}>
+                        <option value="">Pilih kolom…</option>
+                        {selectedWidget.type === "LINE" || selectedWidget.type === "AREA" 
+                          ? widgetColumns.filter(c => c.type === "date" || c.type === "numeric").map(c => <option key={c.name} value={c.name}>{c.name}</option>)
+                          : widgetColumns.filter(c => c.type !== "date").map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                      </select>
+                    </div>
+                  </label>
                   {selectedWidget.type !== "TABLE" && (
-                    <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">Y-axis Field</span>
-                      <select value={selectedWidget.config.yField} onChange={(e) => updateWidgetConfig(selectedWidget.id, { yField: e.target.value })} className="px-3 py-1.5 rounded-lg text-sm focus:outline-none" style={{ backgroundColor: "rgba(30,41,59,0.8)", border: "1px solid rgba(51,65,85,0.6)", color: "#e2e8f0" }}>
-                        <option value="">-- Pilih kolom --</option>
-                        {widgetColumns.filter(c => c.type === "numeric").map(c => <option key={c.name} value={c.name}>{c.name} ({c.type})</option>)}
-                      </select></label>
+                    <>
+                      <label style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 8 }}>
+                        <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>Aggregation</span>
+                        <div className="select-wrap">
+                          <select
+                            value={selectedWidget.config.aggregation}
+                            onChange={(e) => updateWidgetConfig(selectedWidget.id, { aggregation: e.target.value })}
+                            style={{ fontSize: 12, padding: "7px 10px" }}
+                          >
+                            <option value="COUNT">COUNT — Jumlah baris</option>
+                            <option value="SUM">SUM — Total</option>
+                            <option value="AVG">AVG — Rata-rata</option>
+                            <option value="MIN">MIN — Minimum</option>
+                            <option value="MAX">MAX — Maksimum</option>
+                          </select>
+                        </div>
+                      </label>
+                      {selectedWidget.config.aggregation !== "COUNT" && (
+                        <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                          <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>Value (Y-axis)</span>
+                          <div className="select-wrap">
+                            <select
+                              value={selectedWidget.config.yField}
+                              onChange={(e) => updateWidgetConfig(selectedWidget.id, { yField: e.target.value })}
+                              style={{ fontSize: 12, padding: "7px 10px" }}
+                            >
+                              <option value="">Pilih kolom…</option>
+                              {widgetColumns.filter(c => c.type === "numeric").map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                            </select>
+                          </div>
+                        </label>
+                      )}
+                    </>
                   )}
                 </div>
               )}
-              {/* Color */}
-              <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">🎨 Color</span>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={selectedWidget.config.color} onChange={(e) => updateWidgetConfig(selectedWidget.id, { color: e.target.value })} className="w-8 h-8 rounded cursor-pointer border-0 p-0" style={{ backgroundColor: "transparent" }} />
-                  <input type="text" value={selectedWidget.config.color} onChange={(e) => updateWidgetConfig(selectedWidget.id, { color: e.target.value })} className="flex-1 px-3 py-1.5 rounded-lg text-sm focus:outline-none font-mono" style={{ backgroundColor: "rgba(30,41,59,0.8)", border: "1px solid rgba(51,65,85,0.6)", color: "#e2e8f0" }} />
-                </div></label>
+              {/* Color picker */}
+              <label style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}>
+                <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                  <Palette style={{ width: 12, height: 12, display: "inline", marginRight: 4 }} /> Color
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <input type="color" value={selectedWidget.config.color} onChange={(e) => updateWidgetConfig(selectedWidget.id, { color: e.target.value })} style={{ width: 28, height: 28, borderRadius: "var(--radius-sm)", border: "1px solid var(--border-default)", cursor: "pointer", padding: 0, background: "transparent" }} />
+                  <input type="text" value={selectedWidget.config.color} onChange={(e) => updateWidgetConfig(selectedWidget.id, { color: e.target.value })} className="input" style={{ flex: 1, fontSize: 11, padding: "7px 10px", fontFamily: "monospace" }} />
+                </div>
+              </label>
               {/* Resize presets */}
-              <div className="space-y-2"><span className="text-xs text-slate-400">📐 Size</span>
-                <div className="grid grid-cols-4 gap-1">
-                  {[{ w: 3, h: 2, label: "S" }, { w: 4, h: 3, label: "M" }, { w: 6, h: 4, label: "L" }, { w: 12, h: 4, label: "↔" }].map(sz => (
-                    <button key={sz.label} onClick={() => resizeWidget(selectedWidget.id, sz.w, sz.h)} className={"py-1 text-[10px] rounded-md border transition-all " + (selectedWidget.gridW === sz.w && selectedWidget.gridH === sz.h ? "border-emerald-500 bg-emerald-500/10 text-emerald-400" : "border-slate-700 bg-slate-800/50 text-slate-500 hover:border-slate-600 hover:text-slate-300")} title={sz.w + "×" + sz.h}>{sz.label} <span className="opacity-50">{sz.w}×{sz.h}</span></button>
-                  ))}</div></div>
+              <div style={{ marginBottom: 10 }}>
+                <span style={{ fontSize: 11, color: "var(--text-secondary)", display: "block", marginBottom: 6 }}>
+                  <Maximize2 style={{ width: 12, height: 12, display: "inline", marginRight: 4 }} /> Size
+                </span>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4 }}>
+                  {[{ w: 3, h: 2, label: "S" }, { w: 4, h: 3, label: "M" }, { w: 6, h: 4, label: "L" }, { w: 12, h: 4, label: "Wide" }].map(sz => (
+                    <button key={sz.label} onClick={() => resizeWidget(selectedWidget.id, sz.w, sz.h)}
+                      className="btn btn-ghost"
+                      style={{
+                        padding: "4px 6px", fontSize: 10, justifyContent: "center",
+                        ...(selectedWidget.gridW === sz.w && selectedWidget.gridH === sz.h 
+                          ? { borderColor: "var(--gold-500)", color: "var(--gold-400)", background: "var(--gold-dim)" } 
+                          : {})
+                    }}>{sz.label} {sz.w}×{sz.h}</button>
+                  ))}</div>
+              </div>
               {/* Delete */}
-              <button onClick={() => { removeWidget(selectedWidget.id); }} className="w-full py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs hover:bg-red-500/20">🗑️ Remove Widget</button>
+              <button onClick={() => { removeWidget(selectedWidget.id); }} className="btn btn-danger" style={{ width: "100%", justifyContent: "center", fontSize: 12 }}>
+                <Trash2 style={{ width: 13, height: 13 }} /> Remove Widget
+              </button>
             </div>
           </div>
         )}
