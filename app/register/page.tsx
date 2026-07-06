@@ -3,33 +3,45 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogIn, UserPlus } from "lucide-react";
+import { Building2, UserPlus, LogIn } from "lucide-react";
 import { storeAuth } from "@/lib/auth-client";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
+  const [orgName, setOrgName] = useState("");
+  const [adminName, setAdminName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("Password dan konfirmasi password tidak cocok.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password minimal 6 karakter.");
+      return;
+    }
+
+    setLoading(true);
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/tenants", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ orgName, adminName, email, password }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      
-      // Store auth in localStorage (bypass cookie issues)
+
       storeAuth(data.token, data.session);
-      
-      router.push(data.redirectTo || "/dashboard");
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -46,7 +58,7 @@ export default function LoginPage() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
-      {/* ═══════════ LEFT: BRANDING ═══════════ */}
+      {/* LEFT: BRANDING */}
       <div
         style={{
           width: "45%",
@@ -133,7 +145,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* ═══════════ RIGHT: FORM ═══════════ */}
+      {/* RIGHT: FORM */}
       <div
         style={{
           width: "55%",
@@ -144,15 +156,114 @@ export default function LoginPage() {
       >
         <div
           style={{
-            maxWidth: 380,
+            maxWidth: 420,
             width: "100%",
             paddingLeft: "clamp(48px, 8vw, 104px)",
             paddingRight: "clamp(24px, 5vw, 56px)",
           }}
         >
-          <form onSubmit={handleLogin}>
-            {/* Email field */}
-            <div style={{ marginBottom: 20 }}>
+          {/* Header */}
+          <div style={{ marginBottom: 32 }}>
+            <h2
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 26,
+                fontWeight: 400,
+                fontStyle: "italic",
+                color: "var(--text-primary)",
+                margin: "0 0 8px 0",
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Buat Akun
+            </h2>
+            <p
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: 14,
+                fontWeight: 300,
+                color: "var(--text-secondary)",
+                margin: 0,
+              }}
+            >
+              Daftarkan organisasi Anda dan mulai mengelola data
+            </p>
+          </div>
+
+          <form onSubmit={handleRegister}>
+            {/* Organization Name */}
+            <div style={{ marginBottom: 18 }}>
+              <label
+                style={{
+                  display: "block",
+                  fontFamily: "var(--font-body)",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: "var(--text-secondary)",
+                  marginBottom: 7,
+                  letterSpacing: "0.02em",
+                }}
+              >
+                Nama Organisasi
+              </label>
+              <div style={{ position: "relative" }}>
+                <Building2
+                  size={15}
+                  style={{
+                    position: "absolute",
+                    left: 12,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "var(--text-muted)",
+                    pointerEvents: "none",
+                  }}
+                />
+                <input
+                  type="text"
+                  placeholder="PT. Nama Perusahaan"
+                  value={orgName}
+                  onChange={(e) => {
+                    setOrgName(e.target.value);
+                    setError("");
+                  }}
+                  required
+                  className="input"
+                  style={{ paddingLeft: 38, ...inputErrorStyle }}
+                />
+              </div>
+            </div>
+
+            {/* Admin Name */}
+            <div style={{ marginBottom: 18 }}>
+              <label
+                style={{
+                  display: "block",
+                  fontFamily: "var(--font-body)",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: "var(--text-secondary)",
+                  marginBottom: 7,
+                  letterSpacing: "0.02em",
+                }}
+              >
+                Nama Admin
+              </label>
+              <input
+                type="text"
+                placeholder="Nama Anda"
+                value={adminName}
+                onChange={(e) => {
+                  setAdminName(e.target.value);
+                  setError("");
+                }}
+                required
+                className="input"
+                style={inputErrorStyle}
+              />
+            </div>
+
+            {/* Email */}
+            <div style={{ marginBottom: 18 }}>
               <label
                 style={{
                   display: "block",
@@ -168,7 +279,7 @@ export default function LoginPage() {
               </label>
               <input
                 type="email"
-                placeholder="nama@perusahaan.com"
+                placeholder="admin@perusahaan.com"
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
@@ -180,8 +291,8 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Password field */}
-            <div style={{ marginBottom: error ? 14 : 28 }}>
+            {/* Password */}
+            <div style={{ marginBottom: 18 }}>
               <label
                 style={{
                   display: "block",
@@ -197,10 +308,39 @@ export default function LoginPage() {
               </label>
               <input
                 type="password"
-                placeholder="••••••••"
+                placeholder="Minimal 6 karakter"
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
+                  setError("");
+                }}
+                required
+                className="input"
+                style={inputErrorStyle}
+              />
+            </div>
+
+            {/* Confirm Password */}
+            <div style={{ marginBottom: error ? 14 : 28 }}>
+              <label
+                style={{
+                  display: "block",
+                  fontFamily: "var(--font-body)",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: "var(--text-secondary)",
+                  marginBottom: 7,
+                  letterSpacing: "0.02em",
+                }}
+              >
+                Konfirmasi kata sandi
+              </label>
+              <input
+                type="password"
+                placeholder="Ulangi kata sandi"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
                   setError("");
                 }}
                 required
@@ -233,17 +373,17 @@ export default function LoginPage() {
               style={{ width: "100%", justifyContent: "center" }}
             >
               {loading ? (
-                "Menunggu..."
+                "Membuat akun..."
               ) : (
                 <>
-                  <LogIn size={16} />
-                  Bergema
+                  <UserPlus size={16} />
+                  Daftar
                 </>
               )}
             </button>
           </form>
 
-          {/* Register link */}
+          {/* Login link */}
           <p
             style={{
               fontFamily: "var(--font-body)",
@@ -254,9 +394,9 @@ export default function LoginPage() {
               marginTop: 24,
             }}
           >
-            Belum punya akun?{" "}
+            Sudah punya akun?{" "}
             <Link
-              href="/register"
+              href="/login"
               className="link-echo"
               style={{
                 color: "var(--gold-400)",
@@ -264,8 +404,8 @@ export default function LoginPage() {
                 fontWeight: 400,
               }}
             >
-              <UserPlus size={12} style={{ display: "inline", marginRight: 3 }} />
-              Daftar
+              <LogIn size={12} style={{ display: "inline", marginRight: 3 }} />
+              Masuk
             </Link>
           </p>
         </div>

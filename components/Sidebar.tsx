@@ -9,11 +9,13 @@ import {
   GitBranch,
   Network,
   BarChart3,
+  Settings,
   ChevronLeft,
   ChevronRight,
   LogOut,
 } from "lucide-react";
 import TenantSelector from "@/components/TenantSelector";
+import { getStoredAuth } from "@/lib/auth-client";
 
 const NAV_ITEMS = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -21,11 +23,16 @@ const NAV_ITEMS = [
   { href: "/pipelines", icon: GitBranch, label: "ETL Pipelines" },
   { href: "/lakehouse", icon: Network, label: "Lakehouse" },
   { href: "/dashboards", icon: BarChart3, label: "Dashboards" },
+  { href: "/settings", icon: Settings, label: "Settings", adminOnly: true },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+
+  // Check if user is admin for Settings visibility
+  const auth = getStoredAuth();
+  const isAdmin = auth?.session?.role === "ADMIN";
 
   function isActive(href: string) {
     if (href === "/dashboard") return pathname === "/dashboard";
@@ -145,6 +152,8 @@ export default function Sidebar() {
           }}
         >
           {NAV_ITEMS.map((item) => {
+            // Skip admin-only items for non-admin users
+            if ((item as any).adminOnly && !isAdmin) return null;
             const active = isActive(item.href);
             const Icon = item.icon;
             return (

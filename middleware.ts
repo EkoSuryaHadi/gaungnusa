@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifySessionToken, COOKIE_NAME } from "@/lib/auth";
 
 // Only protect API routes — page auth is handled by client-side AuthGuard
-const PROTECTED_API_PREFIXES = ["/api/sources", "/api/pipelines", "/api/dashboards", "/api/dashboard", "/api/lakehouse"];
+const PROTECTED_API_PREFIXES = ["/api/sources", "/api/pipelines", "/api/dashboards", "/api/dashboard", "/api/lakehouse", "/api/tenants"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -10,6 +10,11 @@ export async function middleware(request: NextRequest) {
   // Only run for protected API routes
   const isProtectedApi = PROTECTED_API_PREFIXES.some(p => pathname.startsWith(p));
   if (!isProtectedApi) return NextResponse.next();
+
+  // Allow POST to /api/tenants (tenant registration) without auth
+  if (pathname === "/api/tenants" && request.method === "POST") {
+    return NextResponse.next();
+  }
 
   // Check session cookie + Authorization header
   const cookieToken = request.cookies.get(COOKIE_NAME)?.value;
