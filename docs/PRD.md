@@ -689,7 +689,7 @@ Font Mono:     JetBrains Mono — code & data
 - [ ] Data quality rules
 - [ ] Multi-user RBAC
 - [ ] Scheduled pipeline (cron)
-- [ ] Nginx + domain setup
+- [x] Nginx + domain setup (ekosuryahadi.web.id + SSL)
 - [ ] WebSocket real-time pipeline progress
 - [ ] DuckDB integration for fast analytical queries
 - [ ] Git push + CI/CD
