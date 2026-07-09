@@ -1,0 +1,135 @@
+# Silver Rules — hr.yaml
+# Validation rules for HR / payroll / workforce datasets.
+# Domain: employee records, attendance, compensation, recruitment.
+
+# ─────────────────────────────────────────────────────────────
+# Employee identifiers
+# ─────────────────────────────────────────────────────────────
+employee_id:
+  unique: true
+
+nik:
+  unique: true
+
+npwp:
+  pattern: "^[0-9]{2}\\.?[0-9]{3}\\.?[0-9]{3}\\.?[0-9]{1}-?[0-9]{3}\\.?[0-9]{3}$"
+
+bpjs_ketenagakerjaan:
+  unique: true
+
+bpjs_kesehatan:
+  unique: true
+
+# ─────────────────────────────────────────────────────────────
+# Personal info
+# ─────────────────────────────────────────────────────────────
+full_name:
+  min: 1
+
+first_name:
+  min: 1
+
+last_name:
+  min: 1
+
+gender:
+  values: [male, female, other]
+
+marital_status:
+  values: [single, married, divorced, widowed]
+
+education_level:
+  values: [sd, smp, sma, d1, d2, d3, d4, s1, s2, s3, diploma, associate, bachelor, master, doctorate]
+
+# ─────────────────────────────────────────────────────────────
+# Employment
+# ─────────────────────────────────────────────────────────────
+employment_status:
+  values: [permanent, contract, probation, intern, freelance, part_time, full_time, resigned, terminated, retired]
+
+department:
+  min: 1
+
+division:
+  min: 1
+
+job_title:
+  min: 1
+
+job_level:
+  values: [staff, senior_staff, supervisor, assistant_manager, manager, senior_manager, general_manager, director, vice_president, c_level]
+
+# ─────────────────────────────────────────────────────────────
+# Compensation
+# ─────────────────────────────────────────────────────────────
+salary:
+  min: 0
+
+base_salary:
+  min: 0
+
+allowance:
+  min: 0
+
+bonus:
+  min: 0
+
+overtime_pay:
+  min: 0
+
+salary_grade:
+  min: 1
+  max: 20
+
+# ─────────────────────────────────────────────────────────────
+# Payroll
+# ─────────────────────────────────────────────────────────────
+payroll_period:
+  min: 1
+
+payment_status:
+  values: [pending, processed, paid, failed, cancelled]
+
+bank_name:
+  min: 1
+
+account_number:
+  pattern: "^[0-9]{6,20}$"
+
+# ─────────────────────────────────────────────────────────────
+# Attendance
+# ─────────────────────────────────────────────────────────────
+attendance_status:
+  values: [present, absent, sick_leave, annual_leave, unpaid_leave, maternity_leave, paternity_leave, marriage_leave, bereavement_leave, official_travel, public_holiday, weekend, late, half_day, overtime]
+
+shift:
+  values: [morning, afternoon, night, rotating, flexible, regular]
+
+# ─────────────────────────────────────────────────────────────
+# Performance
+# ─────────────────────────────────────────────────────────────
+performance_rating:
+  min: 1
+  max: 5
+
+kpi_score:
+  min: 0
+  max: 100
+
+review_status:
+  values: [pending, self_review, manager_review, hr_review, completed, acknowledged]
+
+# ─────────────────────────────────────────────────────────────
+# Dates
+# ─────────────────────────────────────────────────────────────
+hire_date:
+  min: "1950-01-01"
+  max: "2099-12-31"
+
+termination_date:
+  min: "1950-01-01"
+  max: "2099-12-31"
+
+date_of_birth:
+  min: "1920-01-01"
+  max: "2099-12-31"

@@ -1,0 +1,105 @@
+# Silver Rules — finance.yaml
+# Validation rules for financial / accounting datasets.
+# Domain: transactions, general ledger, invoices, payments.
+
+# ─────────────────────────────────────────────────────────────
+# Transaction identifiers
+# ─────────────────────────────────────────────────────────────
+transaction_id:
+  unique: true
+
+invoice_id:
+  unique: true
+
+payment_id:
+  unique: true
+
+reference_number:
+  unique: true
+
+# ─────────────────────────────────────────────────────────────
+# Monetary amounts (in IDR, but generic enough for any currency)
+# ─────────────────────────────────────────────────────────────
+amount:
+  min: 0
+
+debit:
+  min: 0
+
+credit:
+  min: 0
+
+balance:
+  min: -999999999999
+  max: 999999999999
+
+tax_amount:
+  min: 0
+
+discount:
+  min: 0
+  max: 100
+
+total_amount:
+  min: 0
+
+net_amount:
+  min: 0
+
+# ─────────────────────────────────────────────────────────────
+# Currency
+# ─────────────────────────────────────────────────────────────
+currency:
+  values: [IDR, USD, EUR, GBP, JPY, SGD, MYR, AUD, CNY, THB, KRW, CHF, CAD, NZD, HKD, INR]
+
+currency_code:
+  values: [IDR, USD, EUR, GBP, JPY, SGD, MYR, AUD, CNY, THB, KRW, CHF, CAD, NZD, HKD, INR]
+
+# ─────────────────────────────────────────────────────────────
+# Transaction types
+# ─────────────────────────────────────────────────────────────
+transaction_type:
+  values: [deposit, withdrawal, transfer, payment, refund, chargeback, fee, interest, dividend, adjustment, reversal, invoice, credit_note, debit_note]
+
+payment_method:
+  values: [bank_transfer, credit_card, debit_card, cash, cheque, ewallet, crypto, voucher, direct_debit, standing_order]
+
+# ─────────────────────────────────────────────────────────────
+# Account codes
+# ─────────────────────────────────────────────────────────────
+account_type:
+  values: [asset, liability, equity, revenue, expense, contra_asset, contra_liability]
+
+entry_type:
+  values: [debit, credit]
+
+# ─────────────────────────────────────────────────────────────
+# Date constraints (financial years)
+# ─────────────────────────────────────────────────────────────
+transaction_date:
+  min: "2000-01-01"
+  max: "2099-12-31"
+
+posting_date:
+  min: "2000-01-01"
+  max: "2099-12-31"
+
+due_date:
+  min: "2000-01-01"
+  max: "2099-12-31"
+
+# ─────────────────────────────────────────────────────────────
+# Counterparty
+# ─────────────────────────────────────────────────────────────
+counterparty_type:
+  values: [customer, supplier, employee, bank, government, shareholder, partner, subsidiary, other]
+
+# ─────────────────────────────────────────────────────────────
+# Tax
+# ─────────────────────────────────────────────────────────────
+tax_rate:
+  min: 0
+  max: 100
+
+tax_code:
+  values: [PPN, PPh21, PPh22, PPh23, PPh25, PPh26, PPh29, PPh4, VAT, GST, HST, NONE]

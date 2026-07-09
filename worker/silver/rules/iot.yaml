@@ -1,0 +1,114 @@
+# Silver Rules — iot.yaml
+# Validation rules for IoT / sensor / telemetry datasets.
+# Domain: smart devices, environmental monitoring, industrial sensors.
+
+# ─────────────────────────────────────────────────────────────
+# Temperature sensors (Celsius, industrial range)
+# ─────────────────────────────────────────────────────────────
+temperature:
+  min: -50
+  max: 300
+
+temp:
+  min: -50
+  max: 300
+
+temp_celsius:
+  min: -50
+  max: 300
+
+temp_fahrenheit:
+  min: -58
+  max: 572
+
+# ─────────────────────────────────────────────────────────────
+# Humidity sensors (% relative humidity)
+# ─────────────────────────────────────────────────────────────
+humidity:
+  min: 0
+  max: 100
+
+humidity_pct:
+  min: 0
+  max: 100
+
+rh:
+  min: 0
+  max: 100
+
+# ─────────────────────────────────────────────────────────────
+# Pressure sensors (hPa / mbar, typical atmospheric)
+# ─────────────────────────────────────────────────────────────
+pressure:
+  min: 300
+  max: 1100
+
+pressure_hpa:
+  min: 300
+  max: 1100
+
+barometric_pressure:
+  min: 300
+  max: 1100
+
+# ─────────────────────────────────────────────────────────────
+# Battery / Power
+# ─────────────────────────────────────────────────────────────
+battery:
+  min: 0
+  max: 100
+
+battery_level:
+  min: 0
+  max: 100
+
+voltage:
+  min: 0
+  max: 480
+
+current:
+  min: 0
+  max: 1000
+
+power:
+  min: 0
+  max: 500000
+
+# ─────────────────────────────────────────────────────────────
+# Device metadata
+# ─────────────────────────────────────────────────────────────
+# NOTE: device_id and sensor_id are NOT unique — IoT devices send
+# repeated readings. True uniqueness is at (device_id, timestamp) level,
+# handled by the duplicate module, not column-level unique constraint.
+
+device_type:
+  values: [thermometer, hygrometer, barometer, accelerometer, gyroscope, magnetometer, gps, microphone, camera, proximity, light, gas, flow, level, pressure_sensor, other]
+
+sensor_type:
+  values: [temperature, humidity, pressure, motion, light, sound, gas, proximity, flow, level, voltage, current, power, vibration, other]
+
+# ─────────────────────────────────────────────────────────────
+# Connectivity
+# ─────────────────────────────────────────────────────────────
+rssi:
+  min: -120
+  max: 0
+
+snr:
+  min: -20
+  max: 50
+
+# ─────────────────────────────────────────────────────────────
+# GPS
+# ─────────────────────────────────────────────────────────────
+latitude:
+  min: -90
+  max: 90
+
+longitude:
+  min: -180
+  max: 180
+
+altitude:
+  min: -500
+  max: 10000

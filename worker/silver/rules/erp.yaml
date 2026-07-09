@@ -1,0 +1,119 @@
+# Silver Rules — erp.yaml
+# Validation rules for ERP / inventory / supply chain datasets.
+# Domain: warehouse management, procurement, manufacturing.
+
+# ─────────────────────────────────────────────────────────────
+# Inventory identifiers
+# ─────────────────────────────────────────────────────────────
+item_id:
+  unique: true
+
+product_code:
+  unique: true
+
+batch_number:
+  unique: true
+
+serial_number:
+  unique: true
+
+warehouse_id:
+  unique: true
+
+bin_location:
+  min: 1
+
+# ─────────────────────────────────────────────────────────────
+# Stock quantities
+# ─────────────────────────────────────────────────────────────
+quantity_on_hand:
+  min: 0
+
+quantity_reserved:
+  min: 0
+
+quantity_available:
+  min: 0
+
+reorder_point:
+  min: 0
+
+reorder_quantity:
+  min: 0
+
+safety_stock:
+  min: 0
+
+max_stock:
+  min: 0
+
+min_stock:
+  min: 0
+
+# ─────────────────────────────────────────────────────────────
+# Unit of measure
+# ─────────────────────────────────────────────────────────────
+uom:
+  values: [pcs, kg, g, l, ml, m, cm, mm, box, carton, pallet, roll, pack, set, bundle, dozen, pair, meter, liter, ton]
+
+unit_of_measure:
+  values: [pcs, kg, g, l, ml, m, cm, mm, box, carton, pallet, roll, pack, set, bundle, dozen, pair, meter, liter, ton]
+
+# ─────────────────────────────────────────────────────────────
+# Movement types
+# ─────────────────────────────────────────────────────────────
+movement_type:
+  values: [receipt, issue, transfer, adjustment, return, scrapped, cycle_count, production_output, consumption, reservation, unreservation]
+
+# ─────────────────────────────────────────────────────────────
+# Warehouse zones
+# ─────────────────────────────────────────────────────────────
+zone:
+  values: [receiving, storage, picking, packing, shipping, returns, quarantine, production, staging]
+
+warehouse_zone:
+  values: [receiving, storage, picking, packing, shipping, returns, quarantine, production, staging]
+
+# ─────────────────────────────────────────────────────────────
+# Supplier / Vendor
+# ─────────────────────────────────────────────────────────────
+supplier_id:
+  unique: true
+
+vendor_id:
+  unique: true
+
+supplier_status:
+  values: [active, inactive, blacklisted, probation, preferred, strategic]
+
+# ─────────────────────────────────────────────────────────────
+# Purchase orders
+# ─────────────────────────────────────────────────────────────
+po_status:
+  values: [draft, pending_approval, approved, sent, partially_received, received, closed, cancelled]
+
+# ─────────────────────────────────────────────────────────────
+# Manufacturing
+# ─────────────────────────────────────────────────────────────
+production_status:
+  values: [planned, scheduled, in_progress, completed, on_hold, cancelled]
+
+work_center:
+  min: 1
+
+machine_id:
+  min: 1
+
+# ─────────────────────────────────────────────────────────────
+# Quality
+# ─────────────────────────────────────────────────────────────
+quality_status:
+  values: [pending, passed, failed, quarantined, released, rejected, rework]
+
+defect_rate:
+  min: 0
+  max: 100
+
+yield_pct:
+  min: 0
+  max: 100

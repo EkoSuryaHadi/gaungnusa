@@ -1,0 +1,6 @@
+id,name,amount,status
+1,Alice,1500,active
+2,Bob,2300,pending
+3,Charlie,980,active
+4,Diana,4200,completed
+5,Eve,3100,active

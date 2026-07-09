@@ -1,0 +1,16 @@
+[Unit]
+Description=Gaung - Data Lakehouse Platform
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/gaung
+Environment=NODE_ENV=production
+Environment=PORT=3005
+ExecStart=/usr/bin/npm run start
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

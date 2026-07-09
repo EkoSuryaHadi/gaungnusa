@@ -1,0 +1,391 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════
+   GAUNG DESIGN SYSTEM — "BATIK GOLD"
+   Hand-crafted, not AI-generated.
+   Warm, earthy, asymmetric. Echo motif.
+   ═══════════════════════════════════════════ */
+
+/* ── Design Tokens ── */
+:root {
+  /* Background — deep warm charcoal, not pure black */
+  --bg-root: #0d0d0c;
+  --bg-surface: #151412;
+  --bg-elevated: #1c1a17;
+  --bg-overlay: rgba(13, 13, 12, 0.85);
+
+  /* Gold accent — like hand-beaten batik gold leaf */
+  --gold-400: #d4a853;
+  --gold-500: #c4963f;
+  --gold-600: #a87a2e;
+  --gold-dim: rgba(212, 168, 83, 0.08);
+  --gold-glow: rgba(212, 168, 83, 0.18);
+
+  /* Terracotta — warm earth tone */
+  --clay-400: #c4724f;
+  --clay-500: #b85c3a;
+  --clay-dim: rgba(184, 92, 58, 0.10);
+
+  /* Sage — muted green, like aged copper */
+  --sage-400: #8a9b7a;
+  --sage-dim: rgba(138, 155, 122, 0.08);
+
+  /* Text — warm off-white, not cold gray */
+  --text-primary: #e8e2d5;
+  --text-secondary: #a09888;
+  --text-muted: #6b6457;
+
+  /* Borders — warm, not gray */
+  --border-subtle: rgba(168, 154, 132, 0.10);
+  --border-default: rgba(168, 154, 132, 0.15);
+  --border-strong: rgba(168, 154, 132, 0.22);
+
+  /* Radius — slightly irregular, not perfect */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Shadows — layered, not flat */
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.25);
+  --shadow-elevated: 0 2px 6px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 24px rgba(212, 168, 83, 0.12);
+
+  /* Typography */
+  --font-display: 'Newsreader', Georgia, serif;
+  --font-body: 'DM Sans', 'Inter', system-ui, sans-serif;
+}
+
+/* ── Base ── */
+body {
+  background: var(--bg-root);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Custom Scrollbar — understated, warm ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── Selection ── */
+::selection {
+  background: rgba(212, 168, 83, 0.25);
+  color: var(--text-primary);
+}
+
+/* ═══════════════════════════════════════════
+   UTILITY CLASSES — hand-named, not AI generic
+   ═══════════════════════════════════════════ */
+
+/* Card — three tiers of elevation */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: all 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+.card:hover {
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-elevated);
+  transform: translateY(-1px);
+}
+.card-raised {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elevated);
+}
+.card-glow {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-glow), var(--shadow-card);
+}
+
+/* Button — warm, tactile */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body); font-weight: 500; font-size: 14px;
+  transition: all 180ms cubic-bezier(0.2, 0, 0, 1);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.btn-primary {
+  background: var(--gold-500);
+  color: #0d0d0c;
+  border-color: var(--gold-500);
+}
+.btn-primary:hover {
+  background: var(--gold-400);
+  box-shadow: 0 0 20px rgba(212, 168, 83, 0.25);
+  transform: translateY(-1px);
+}
+.btn-secondary {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.btn-secondary:hover {
+  border-color: var(--gold-500);
+  color: var(--gold-400);
+  background: var(--gold-dim);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+.btn-ghost:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface);
+}
+.btn-danger {
+  background: transparent;
+  color: var(--clay-400);
+  border-color: var(--clay-dim);
+}
+.btn-danger:hover {
+  background: rgba(184, 92, 58, 0.12);
+  border-color: var(--clay-400);
+}
+
+/* Badge — status indicators */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.badge-active {
+  background: rgba(138, 155, 122, 0.15);
+  color: var(--sage-400);
+  border: 1px solid rgba(138, 155, 122, 0.2);
+}
+.badge-draft {
+  background: rgba(168, 154, 132, 0.08);
+  color: var(--text-muted);
+  border: 1px solid var(--border-default);
+}
+
+/* Input — understated with warm focus */
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-body); font-size: 14px; font-weight: 400;
+  transition: border-color 180ms, box-shadow 180ms;
+  outline: none;
+}
+.input::placeholder { color: var(--text-muted); font-weight: 300; }
+.input:focus {
+  border-color: var(--gold-500);
+  box-shadow: 0 0 0 3px var(--gold-dim);
+}
+
+/* Select — custom styled */
+.select-wrap {
+  position: relative;
+}
+.select-wrap select {
+  appearance: none;
+  width: 100%;
+  padding: 10px 36px 10px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-body); font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 180ms;
+}
+.select-wrap select:focus {
+  border-color: var(--gold-500);
+  box-shadow: 0 0 0 3px var(--gold-dim);
+}
+.select-wrap::after {
+  content: '▾'; position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%); color: var(--text-muted);
+  font-size: 11px; pointer-events: none;
+}
+
+/* Divider — echo wave motif */
+.divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--border-default) 15%,
+    var(--border-strong) 50%,
+    var(--border-default) 85%,
+    transparent 100%
+  );
+  border: none;
+}
+
+/* Empty state — concentric echo circles */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 18px; padding: 64px 24px;
+  text-align: center;
+  position: relative;
+}
+.empty-state::before {
+  content: '';
+  position: absolute; width: 180px; height: 180px;
+  border-radius: 50%;
+  border: 1px solid var(--border-subtle);
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+.empty-state::after {
+  content: '';
+  position: absolute; width: 260px; height: 260px;
+  border-radius: 50%;
+  border: 1px solid rgba(168, 154, 132, 0.04);
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+.empty-state h3 {
+  font-family: var(--font-display); font-size: 20px; font-weight: 400;
+  color: var(--text-secondary); font-style: italic; position: relative;
+}
+
+/* Skeleton — warm pulse */
+.skeleton {
+  background: linear-gradient(
+    110deg,
+    var(--bg-surface) 30%,
+    var(--bg-elevated) 50%,
+    var(--bg-surface) 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Echo motif: concentric ring decoration ── */
+.echo-ring {
+  position: relative;
+}
+.echo-ring::before {
+  content: '';
+  position: absolute; inset: -4px;
+  border-radius: inherit;
+  border: 1px solid var(--border-subtle);
+  pointer-events: none;
+}
+.echo-ring::after {
+  content: '';
+  position: absolute; inset: -8px;
+  border-radius: inherit;
+  border: 1px solid rgba(168, 154, 132, 0.04);
+  pointer-events: none;
+}
+
+/* ── Page transition ── */
+.page-enter {
+  animation: fadeSlideIn 280ms cubic-bezier(0.2, 0, 0, 1);
+}
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Stagger children animation ── */
+.stagger > * {
+  animation: fadeSlideIn 350ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 40ms; }
+.stagger > *:nth-child(2) { animation-delay: 80ms; }
+.stagger > *:nth-child(3) { animation-delay: 120ms; }
+.stagger > *:nth-child(4) { animation-delay: 160ms; }
+.stagger > *:nth-child(5) { animation-delay: 200ms; }
+.stagger > *:nth-child(6) { animation-delay: 240ms; }
+.stagger > *:nth-child(7) { animation-delay: 280ms; }
+.stagger > *:nth-child(8) { animation-delay: 320ms; }
+
+/* ── Tooltip ── */
+[data-tooltip] {
+  position: relative;
+}
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-elevated); color: var(--text-primary);
+  padding: 4px 10px; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 400;
+  border: 1px solid var(--border-default);
+  white-space: nowrap; pointer-events: none;
+  opacity: 0; transition: opacity 150ms;
+}
+[data-tooltip]:hover::after { opacity: 1; }
+
+/* ── Link underline animation ── */
+.link-echo {
+  position: relative;
+  text-decoration: none;
+  color: var(--gold-400);
+}
+.link-echo::after {
+  content: '';
+  position: absolute; bottom: -1px; left: 0; right: 0;
+  height: 1px;
+  background: var(--gold-500);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 250ms cubic-bezier(0.2, 0, 0, 1);
+}
+.link-echo:hover::after { transform: scaleX(1); }
+
+/* ── Pipeline card — gold left border on hover ── */
+.pipeline-card {
+  border-left: 3px solid transparent;
+  transition: border-color 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+.pipeline-card:hover {
+  border-left-color: var(--gold-500);
+}
+
+/* ── Mini flow diagram — dots + lines ── */
+.flow-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 220ms;
+}
+.flow-dot.active { background: var(--gold-400); }
+.flow-dot.draft { background: var(--text-muted); }
+
+.flow-line {
+  width: 12px; height: 1px;
+  flex-shrink: 0;
+  transition: background 220ms, opacity 220ms;
+}
+.flow-line.active { background: var(--gold-400); opacity: 0.4; }
+.flow-line.draft { background: var(--text-muted); opacity: 0.3; }
+
+/* ── Status badge pulse animation (active only) ── */
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+.badge-active {
+  animation: statusPulse 2.2s ease-in-out infinite;
+}

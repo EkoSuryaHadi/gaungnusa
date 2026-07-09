@@ -1,0 +1,115 @@
+# Silver Rules — sales.yaml
+# Validation rules for sales / transaction / e-commerce datasets.
+# Domain: retail, wholesale, online marketplace, POS.
+
+# ─────────────────────────────────────────────────────────────
+# Order / Transaction identifiers
+# ─────────────────────────────────────────────────────────────
+order_id:
+  unique: true
+
+transaction_id:
+  unique: true
+
+invoice_number:
+  unique: true
+
+receipt_id:
+  unique: true
+
+# ─────────────────────────────────────────────────────────────
+# Product information
+# ─────────────────────────────────────────────────────────────
+product_id:
+  unique: true
+
+sku:
+  unique: true
+
+product_name:
+  min: 1
+
+category:
+  min: 1
+
+# ─────────────────────────────────────────────────────────────
+# Pricing
+# ─────────────────────────────────────────────────────────────
+price:
+  min: 0
+
+unit_price:
+  min: 0
+
+cost_price:
+  min: 0
+
+selling_price:
+  min: 0
+
+discount_pct:
+  min: 0
+  max: 100
+
+tax_rate:
+  min: 0
+  max: 100
+
+# ─────────────────────────────────────────────────────────────
+# Quantities
+# ─────────────────────────────────────────────────────────────
+quantity:
+  min: 0
+
+qty:
+  min: 0
+
+units_sold:
+  min: 0
+
+stock:
+  min: 0
+
+# ─────────────────────────────────────────────────────────────
+# Customer info
+# ─────────────────────────────────────────────────────────────
+customer_id:
+  unique: true
+
+customer_type:
+  values: [new, returning, vip, wholesale, retail, corporate, government]
+
+loyalty_tier:
+  values: [bronze, silver, gold, platinum, diamond, none]
+
+# ─────────────────────────────────────────────────────────────
+# Order status
+# ─────────────────────────────────────────────────────────────
+order_status:
+  values: [pending, confirmed, processing, shipped, delivered, cancelled, returned, refunded, on_hold, backordered]
+
+payment_status:
+  values: [pending, authorized, paid, partially_paid, failed, refunded, chargeback]
+
+fulfillment_status:
+  values: [unfulfilled, partial, fulfilled, shipped, delivered]
+
+# ─────────────────────────────────────────────────────────────
+# Channel / Source
+# ─────────────────────────────────────────────────────────────
+sales_channel:
+  values: [online, instore, marketplace, social_media, phone, email, partner, reseller, wholesale, b2b]
+
+payment_method:
+  values: [credit_card, debit_card, bank_transfer, cash, ewallet, cod, voucher, installment, crypto]
+
+# ─────────────────────────────────────────────────────────────
+# Ratings
+# ─────────────────────────────────────────────────────────────
+rating:
+  min: 0
+  max: 5
+
+satisfaction_score:
+  min: 0
+  max: 100

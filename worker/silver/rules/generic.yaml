@@ -1,0 +1,70 @@
+# Silver Rules — generic.yaml
+# Default validation rules applied when no domain-specific rules match.
+# These cover common column naming conventions across all domains.
+
+# ─────────────────────────────────────────────────────────────
+# Common identifier columns
+# ─────────────────────────────────────────────────────────────
+id:
+  unique: true
+
+email:
+  pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+
+phone:
+  pattern: "^\\+?[0-9]{7,15}$"
+
+# ─────────────────────────────────────────────────────────────
+# Standard date/time columns
+# ─────────────────────────────────────────────────────────────
+created_at:
+  max: "2099-12-31"
+
+updated_at:
+  max: "2099-12-31"
+
+date:
+  max: "2099-12-31"
+
+timestamp:
+  max: "2099-12-31"
+
+# ─────────────────────────────────────────────────────────────
+# Boolean/flag columns
+# ─────────────────────────────────────────────────────────────
+is_active:
+  values: [true, false, 0, 1]
+
+status:
+  values: [active, inactive, pending, completed, cancelled, draft, archived]
+
+# ─────────────────────────────────────────────────────────────
+# Numeric constraints (positive only, sensible defaults)
+# ─────────────────────────────────────────────────────────────
+amount:
+  min: 0
+
+price:
+  min: 0
+
+quantity:
+  min: 0
+
+count:
+  min: 0
+
+total:
+  min: 0
+
+age:
+  min: 0
+  max: 150
+
+# ─────────────────────────────────────────────────────────────
+# URL validation
+# ─────────────────────────────────────────────────────────────
+url:
+  pattern: "^https?://.{1,2048}$"
+
+website:
+  pattern: "^https?://.{1,2048}$"
