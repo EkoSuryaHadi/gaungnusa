@@ -24,7 +24,9 @@ export function RunPipelineButton({
       });
       const data = await res.json();
       if (res.ok) {
-        setResult(`${data.rowsOutput || 0} rows`);
+        setResult("Started!");
+        // Navigate to pipeline detail page to track progress
+        router.push(`/pipelines/${pipelineId}`);
         router.refresh();
       } else {
         setResult(data.error || "Failed");

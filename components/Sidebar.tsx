@@ -22,7 +22,7 @@ const NAV_ITEMS = [
   { href: "/sources", icon: Database, label: "Data Sources" },
   { href: "/pipelines", icon: GitBranch, label: "ETL Pipelines" },
   { href: "/lakehouse", icon: Network, label: "Lakehouse" },
-  { href: "/dashboards", icon: BarChart3, label: "Dashboards" },
+  { href: "/dashboards", icon: BarChart3, label: "Visual Builder" },
   { href: "/settings", icon: Settings, label: "Settings", adminOnly: true },
 ];
 

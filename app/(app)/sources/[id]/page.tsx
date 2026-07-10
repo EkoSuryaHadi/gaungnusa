@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Pencil, Trash2, FileSpreadsheet, Rows3, Columns3, Clock, HardDrive } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, FileSpreadsheet, Rows3, Columns3, Clock, HardDrive, RefreshCw, Loader2 } from "lucide-react";
 import DeleteSourceButton from "../delete-button";
 
 interface DataSource {
@@ -33,28 +33,68 @@ export default function SourceDetailPage() {
   const [preview, setPreview] = useState<PreviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState("");
+
+  const loadSource = async () => {
+    try {
+      const res = await fetch(`/api/sources/${params.id}`);
+      if (res.status === 401) { router.push("/login"); return; }
+      if (!res.ok) throw new Error(`Source fetch failed: ${res.status}`);
+      const data = await res.json();
+      setSource(data);
+      if (data.preview) {
+        setPreview({ columns: data.preview.columns, rows: data.preview.rows, totalRows: data.rowsCount || 0 });
+      } else {
+        setPreview({ columns: [], rows: [], totalRows: 0, error: "No preview available" });
+      }
+    } catch (e: any) {
+      setError(e.message);
+    }
+  };
 
   useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch(`/api/sources/${params.id}`);
-        if (res.status === 401) { router.push("/login"); return; }
-        if (!res.ok) throw new Error(`Source fetch failed: ${res.status}`);
-        const data = await res.json();
-        setSource(data);
-        if (data.preview) {
-          setPreview({ columns: data.preview.columns, rows: data.preview.rows, totalRows: data.rowsCount || 0 });
-        } else {
-          setPreview({ columns: [], rows: [], totalRows: 0, error: "No preview available" });
-        }
-      } catch (e: any) {
-        setError(e.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
+    setLoading(true);
+    loadSource().finally(() => setLoading(false));
   }, [params.id, router]);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    setSyncMessage("Sync started...");
+    try {
+      const res = await fetch(`/api/sources/${params.id}/sync`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Sync failed");
+
+      setSyncMessage("Sync process started! Refreshing data...");
+      
+      // Poll source status every 2 seconds for up to 10 seconds to check if status goes back to ACTIVE
+      let attempts = 0;
+      const interval = setInterval(async () => {
+        attempts++;
+        const checkRes = await fetch(`/api/sources/${params.id}`);
+        if (checkRes.ok) {
+          const checkData = await checkRes.json();
+          if (checkData.status !== "SYNCING" || attempts >= 5) {
+            clearInterval(interval);
+            setSource(checkData);
+            if (checkData.preview) {
+              setPreview({ columns: checkData.preview.columns, rows: checkData.preview.rows, totalRows: checkData.rowsCount || 0 });
+            }
+            setSyncing(false);
+            setSyncMessage("");
+            router.refresh();
+          }
+        }
+      }, 2000);
+    } catch (e: any) {
+      alert(e.message);
+      setSyncing(false);
+      setSyncMessage("");
+    }
+  };
 
   // ── Loading skeleton ──
   if (loading) return (
@@ -183,26 +223,53 @@ export default function SourceDetailPage() {
         </div>
 
         {/* Actions */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <Link
-            href={`/pipelines/new?sourceId=${source.id}&sourceName=${encodeURIComponent(source.name)}`}
-            className="btn btn-primary"
-          >
-            <FileSpreadsheet size={15} />
-            Create Pipeline
-          </Link>
-          <Link
-            href={`/sources/${source.id}/edit`}
-            className="btn btn-secondary"
-          >
-            <Pencil size={15} />
-            Edit
-          </Link>
-          <DeleteSourceButton
-            sourceId={source.id}
-            sourceName={source.name}
-            onDeleted={() => router.push("/sources")}
-          />
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {(source.type === "DATABASE" || source.type === "API") && (
+              <button
+                onClick={handleSync}
+                disabled={syncing || source.status === "SYNCING"}
+                className="btn btn-secondary"
+                style={{ gap: 6 }}
+              >
+                {syncing || source.status === "SYNCING" ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" />
+                    {syncing ? "Syncing..." : "Syncing in BG..."}
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw size={15} />
+                    Sync Now
+                  </>
+                )}
+              </button>
+            )}
+            <Link
+              href={`/pipelines/new?sourceId=${source.id}&sourceName=${encodeURIComponent(source.name)}`}
+              className="btn btn-primary"
+            >
+              <FileSpreadsheet size={15} />
+              Create Pipeline
+            </Link>
+            <Link
+              href={`/sources/${source.id}/edit`}
+              className="btn btn-secondary"
+            >
+              <Pencil size={15} />
+              Edit
+            </Link>
+            <DeleteSourceButton
+              sourceId={source.id}
+              sourceName={source.name}
+              onDeleted={() => router.push("/sources")}
+            />
+          </div>
+          {syncMessage && (
+            <p style={{ margin: 0, fontSize: 11, color: "var(--gold-400)" }}>
+              {syncMessage}
+            </p>
+          )}
         </div>
       </div>
 

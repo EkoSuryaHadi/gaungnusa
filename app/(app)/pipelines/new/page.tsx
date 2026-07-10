@@ -68,6 +68,8 @@ interface ConfigState {
   // OUTPUT
   outputLayer?: string;
   outputTable?: string;
+  writeMode?: string;
+  primaryKey?: string;
 }
 
 const defaultConfig: Record<StepType, ConfigState> = {
@@ -81,7 +83,7 @@ const defaultConfig: Record<StepType, ConfigState> = {
   AGGREGATE:  { groupBy: "", aggregations: "" },
   SORT:       { sortField: "", sortDirection: "ASC" },
   PIVOT:      { pivotRows: "", pivotColumns: "", pivotValues: "" },
-  OUTPUT:     { outputLayer: "SILVER", outputTable: "" },
+  OUTPUT:     { outputLayer: "SILVER", outputTable: "", writeMode: "overwrite", primaryKey: "" },
 };
 
 // ──────────────────────────────────────────────
@@ -704,6 +706,29 @@ function ConfigPanel({
               className="input"
             />
           </Field>
+          
+          <Field label="Write Mode" helper="How to save the resulting table on subsequent runs">
+            <select
+              value={config.writeMode ?? "overwrite"}
+              onChange={(e) => set("writeMode", e.target.value)}
+              className="input"
+            >
+              <option value="overwrite">Overwrite (Full Refresh)</option>
+              <option value="append">Append (Insert New Rows)</option>
+              <option value="upsert">Upsert (Merge rows using Primary Key)</option>
+            </select>
+          </Field>
+
+          {(config.writeMode ?? "overwrite") === "upsert" && (
+            <Field label="Primary Key Column(s)" helper="Comma-separated column names for identifying duplicate rows (e.g. id, transaction_id)">
+              <input
+                value={config.primaryKey ?? ""}
+                onChange={(e) => set("primaryKey", e.target.value)}
+                placeholder="e.g. Transaction_ID"
+                className="input"
+              />
+            </Field>
+          )}
         </div>
       )}
     </div>
@@ -827,8 +852,21 @@ function NewPipelineContent() {
 
   // ── Simple Mode State ──
   const [mode, setMode] = useState<"simple" | "advanced">("simple");
-  const [simpleStep, setSimpleStep] = useState<1 | 2 | 3>(1);
-  const [selectedGoal, setSelectedGoal] = useState<SimpleGoalId | null>(null);
+  const [selectedGoal, setSelectedGoal] = useState<SimpleGoalId | null>(() => {
+    const prefilledGoal = searchParams.get("goal") as SimpleGoalId | null;
+    if (prefilledGoal && ["clean", "monthly-report", "validate", "dashboard-ready"].includes(prefilledGoal)) {
+      return prefilledGoal;
+    }
+    return null;
+  });
+  const [simpleStep, setSimpleStep] = useState<1 | 2 | 3>(() => {
+    const hasSource = !!(prefilledSourceId || (prefilledSourceTable && prefilledSourceLayer));
+    const prefilledGoal = searchParams.get("goal");
+    const hasGoal = !!(prefilledGoal && ["clean", "monthly-report", "validate", "dashboard-ready"].includes(prefilledGoal));
+    if (hasSource && hasGoal) return 3;
+    if (hasSource) return 2;
+    return 1;
+  });
   const [selectedSource, setSelectedSource] = useState<SimpleSource | null>(null);
   const [sources, setSources] = useState<any[]>([]);
   const [lakehouseTables, setLakehouseTables] = useState<any[]>([]);
@@ -912,6 +950,14 @@ function NewPipelineContent() {
           } else {
             (baseConfig as any).sourceTable = selectedSource.tableName || selectedSource.name;
             (baseConfig as any).sourceLayer = selectedSource.layer || "BRONZE";
+          }
+        }
+
+        if (stepType === "VALIDATE") {
+          const prefilledRules = searchParams.get("rules");
+          if (prefilledRules) {
+            (baseConfig as any).validationRules = prefilledRules;
+            (baseConfig as any).validationMode = "drop";
           }
         }
 

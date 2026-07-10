@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ParseResult } from "papaparse";
-import { ArrowLeft, Upload, FileSpreadsheet, Check, Loader2, X, ArrowRight, Database, Zap } from "lucide-react";
+import { ArrowLeft, Upload, FileSpreadsheet, Check, Loader2, X, ArrowRight, Database, Zap, Sparkles } from "lucide-react";
 import { authFetch } from "@/lib/auth-client";
 
 // ---------------------------------------------------------------------------
@@ -50,11 +50,15 @@ export default function NewSourcePage() {
   // ---- submit state ----
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState<{ id: number; name: string; rows: number; columns: number } | null>(null);
+  const [success, setSuccess] = useState<{ id: number; name: string; rows: number; columns: number; tableName?: string } | null>(null);
 
   // ---- auto-pipeline state ----
   const [pipelineStatus, setPipelineStatus] = useState<"creating" | "running" | "completed" | "failed" | null>(null);
   const [pipelineId, setPipelineId] = useState<number | null>(null);
+
+  // ---- AI agent classification state ----
+  const [classificationStatus, setClassificationStatus] = useState<"idle" | "running" | "completed" | "failed">("idle");
+  const [classificationResult, setClassificationResult] = useState<{ category: string; explanation: string; validationRules?: string } | null>(null);
 
   // -------------------------------------------------------------------
   // File selection helpers
@@ -161,7 +165,7 @@ export default function NewSourcePage() {
   };
 
   // ---- auto-create & auto-run pipeline after upload ----
-  const autoCreateAndRunPipeline = async (sourceId: number, sourceName: string) => {
+  const autoCreateAndRunPipeline = async (sourceId: number, sourceName: string, validationRules: string = "") => {
     setPipelineStatus("creating");
 
     try {
@@ -170,24 +174,26 @@ export default function NewSourcePage() {
         .replace(/[^a-z0-9]+/g, "_")
         .replace(/^_|_$/g, "");
 
-      // Step 1 — Create pipeline with Quick Clean → Silver template
+      // Construct steps: SOURCE and OUTPUT to BRONZE only
+      const steps: Array<{ order: number; type: string; config: Record<string, any>; outputLayer?: string; outputTable?: string }> = [
+        { order: 1, type: "SOURCE", config: { sourceId } },
+        {
+          order: 2,
+          type: "OUTPUT",
+          config: { layer: "BRONZE", tableName: sanitizedTableName },
+          outputLayer: "BRONZE",
+          outputTable: sanitizedTableName,
+        },
+      ];
+
+      // Step 1 — Create pipeline with dynamic template
       const pipelineRes = await authFetch("/api/pipelines", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: `${sourceName} Pipeline`,
           sourceId,
-          steps: [
-            { order: 1, type: "SOURCE", config: { sourceId } },
-            { order: 2, type: "CLEAN", config: { dedup: true, dropNulls: true } },
-            {
-              order: 3,
-              type: "OUTPUT",
-              config: { layer: "SILVER", tableName: sanitizedTableName },
-              outputLayer: "SILVER",
-              outputTable: sanitizedTableName,
-            },
-          ],
+          steps,
         }),
       });
 
@@ -211,10 +217,72 @@ export default function NewSourcePage() {
       }
 
       const runResult = await runRes.json();
-      setPipelineStatus(runResult.status === "SUCCESS" ? "completed" : "failed");
+      const runId = runResult.id;
+
+      if (!runId) {
+        setPipelineStatus("failed");
+        return;
+      }
+
+      // Poll the pipeline run status since it runs asynchronously
+      let attempts = 0;
+      const maxAttempts = 30; // 30 seconds max timeout
+      let completed = false;
+
+      while (attempts < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        try {
+          const pollRes = await authFetch(`/api/pipelines/${pipeline.id}`);
+          if (pollRes.ok) {
+            const pipelineData = await pollRes.json();
+            const currentRun = (pipelineData.runs || []).find((r: any) => r.id === runId);
+            if (currentRun) {
+              if (currentRun.status === "SUCCESS") {
+                setPipelineStatus("completed");
+                completed = true;
+                break;
+              } else if (currentRun.status === "FAILED") {
+                setPipelineStatus("failed");
+                completed = true;
+                break;
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Error polling pipeline status:", e);
+        }
+        attempts++;
+      }
+
+      if (!completed) {
+        setPipelineStatus("failed");
+      }
     } catch (err: any) {
       console.error("Pipeline auto-create/run error:", err);
       setPipelineStatus("failed");
+    }
+  };
+
+  // ---- AI data classification agent ----
+  const classifyDataSource = async (sourceId: number) => {
+    setClassificationStatus("running");
+    try {
+      const res = await authFetch(`/api/sources/${sourceId}/classify`, {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error("Classification failed");
+      const result = await res.json();
+      setClassificationResult({
+        category: result.category,
+        explanation: result.explanation,
+        validationRules: result.validationRules || "",
+      });
+      setClassificationStatus("completed");
+      return result;
+    } catch (err) {
+      console.error("Classification error:", err);
+      setClassificationStatus("failed");
+      return null;
     }
   };
 
@@ -254,16 +322,25 @@ export default function NewSourcePage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || `Upload failed (${res.status})`);
 
+       const sanitizedTableName = data.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_|_$/g, "");
+
       setSuccess({
         id: data.id,
         name: data.name,
         rows: data.rowsCount ?? 0,
         columns: data.columnsCount ?? 0,
+        tableName: sanitizedTableName,
       });
       setSubmitting(false);
 
-      // ── Auto-create and auto-run pipeline ──
-      autoCreateAndRunPipeline(data.id, data.name);
+      // ── Run AI classification agent first ──
+      classifyDataSource(data.id).then((classification) => {
+        // ── Auto-create and auto-run pipeline with validation rules ──
+        autoCreateAndRunPipeline(data.id, data.name, classification?.validationRules || "");
+      });
     } catch (err: any) {
       setError(err.message || "Something went wrong during upload.");
       setSubmitting(false);
@@ -292,6 +369,8 @@ export default function NewSourcePage() {
     setSuccess(null);
     setPipelineStatus(null);
     setPipelineId(null);
+    setClassificationStatus("idle");
+    setClassificationResult(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -475,21 +554,110 @@ export default function NewSourcePage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                   <span style={{ fontSize: "13px", fontWeight: 500, color: "var(--text-primary)" }}>
                     {pipelineStatus === "creating"
-                      ? "Creating Quick Clean → Silver pipeline..."
+                      ? "Creating Ingestion → Bronze pipeline..."
                       : pipelineStatus === "running"
-                        ? "Pipeline is running — processing your data..."
+                        ? "Pipeline is running — storing raw data to Bronze..."
                         : pipelineStatus === "completed"
                           ? "Pipeline completed successfully"
                           : "Pipeline failed"}
                   </span>
                   <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
                     {pipelineStatus === "creating"
-                      ? "SOURCE → CLEAN → OUTPUT (SILVER)"
+                      ? "SOURCE → OUTPUT (BRONZE)"
                       : pipelineStatus === "running"
-                        ? "Deduplication, null removal, and Silver layer output"
+                        ? "Storing raw uploaded data to Bronze layer"
                         : pipelineStatus === "completed"
-                          ? "Your cleaned data is ready in the Silver layer"
+                          ? "Your raw data is ready in the Bronze layer"
                           : "Check the pipeline details for error information"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── AI Agent Data Classifier Card ── */}
+          {classificationStatus && classificationStatus !== "idle" && (
+            <div
+              className="card page-enter"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "14px",
+                padding: "20px 24px",
+                borderColor:
+                  classificationStatus === "completed"
+                    ? "rgba(212, 168, 83, 0.25)"
+                    : classificationStatus === "failed"
+                      ? "rgba(184, 92, 58, 0.25)"
+                      : "rgba(168, 154, 132, 0.15)",
+                background:
+                  classificationStatus === "completed"
+                    ? "rgba(212, 168, 83, 0.04)"
+                    : classificationStatus === "failed"
+                      ? "rgba(184, 92, 58, 0.04)"
+                      : "rgba(168, 154, 132, 0.03)",
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              {/* Decorative background pulse for AI */}
+              {classificationStatus === "running" && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "-50%",
+                    left: "-50%",
+                    width: "200%",
+                    height: "200%",
+                    background: "radial-gradient(circle, rgba(212, 168, 83, 0.05) 0%, transparent 70%)",
+                    animation: "pulse 3s infinite ease-in-out",
+                    pointerEvents: "none",
+                  }}
+                />
+              )}
+
+              {/* Title & Status */}
+              <div style={{ display: "flex", alignItems: "start", gap: "12px", zIndex: 1 }}>
+                {classificationStatus === "running" ? (
+                  <Sparkles
+                    size={20}
+                    className="animate-spin"
+                    style={{ color: "var(--gold-400)", flexShrink: 0, animationDuration: "3s" }}
+                  />
+                ) : classificationStatus === "completed" ? (
+                  <Sparkles size={20} style={{ color: "var(--gold-400)", flexShrink: 0 }} />
+                ) : (
+                  <X size={20} style={{ color: "var(--clay-400)", flexShrink: 0 }} />
+                )}
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+                    <span style={{ fontSize: "13px", fontWeight: 500, color: "var(--text-primary)" }}>
+                      AI Agent: Data Profiler & Classifier
+                    </span>
+                    {classificationStatus === "completed" && classificationResult && (
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: 600,
+                          textTransform: "uppercase",
+                          padding: "2px 8px",
+                          borderRadius: "12px",
+                          background: "rgba(212, 168, 83, 0.15)",
+                          border: "1px solid rgba(212, 168, 83, 0.3)",
+                          color: "var(--gold-400)",
+                        }}
+                      >
+                        {classificationResult.category}
+                      </span>
+                    )}
+                  </div>
+                  <span style={{ fontSize: "12px", color: "var(--text-secondary)", lineHeight: 1.4 }}>
+                    {classificationStatus === "running"
+                      ? "AI is scanning columns and data samples to identify data domain..."
+                      : classificationStatus === "completed" && classificationResult
+                        ? classificationResult.explanation
+                        : "AI failed to classify this data source."}
                   </span>
                 </div>
               </div>
@@ -505,9 +673,9 @@ export default function NewSourcePage() {
             }}
           >
             {/* Primary: View Results (when pipeline done) or Continue to Pipeline */}
-            {pipelineStatus === "completed" && pipelineId ? (
+            {pipelineStatus === "completed" && success ? (
               <Link
-                href={`/pipelines/${pipelineId}`}
+                href={`/pipelines/new?sourceTable=${success.tableName}&sourceLayer=BRONZE&goal=validate&rules=${encodeURIComponent(classificationResult?.validationRules || "")}`}
                 className="btn btn-primary"
                 style={{
                   display: "flex",
@@ -516,12 +684,15 @@ export default function NewSourcePage() {
                   gap: "10px",
                   padding: "14px 24px",
                   fontSize: "15px",
-                  fontWeight: 500,
-                  boxShadow: "0 0 24px rgba(212, 168, 83, 0.2)",
+                  fontWeight: 600,
+                  boxShadow: "0 0 24px rgba(94, 178, 127, 0.2)",
+                  background: "linear-gradient(to right, var(--gold-400), #5EB27F)",
+                  color: "#000",
+                  border: "none",
                 }}
               >
                 <Zap size={18} />
-                View Results
+                Process to Silver
                 <ArrowRight size={16} />
               </Link>
             ) : pipelineStatus === "failed" && pipelineId ? (
@@ -545,7 +716,7 @@ export default function NewSourcePage() {
               </Link>
             ) : (
               <Link
-                href={`/pipelines/new?sourceId=${success.id}&sourceName=${encodeURIComponent(success.name)}`}
+                href={`/pipelines/new?sourceId=${success?.id}&sourceName=${encodeURIComponent(success?.name || "")}`}
                 className="btn btn-primary"
                 style={{
                   display: "flex",
@@ -570,7 +741,8 @@ export default function NewSourcePage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "16px",
+                gap: "12px",
+                flexWrap: "wrap",
               }}
             >
               <Link
@@ -581,6 +753,16 @@ export default function NewSourcePage() {
                 <ArrowLeft size={14} />
                 Back to Sources
               </Link>
+              {pipelineStatus === "completed" && pipelineId && (
+                <Link
+                  href={`/pipelines/${pipelineId}`}
+                  className="btn btn-ghost"
+                  style={{ fontSize: "13px", padding: "10px 20px", color: "var(--text-secondary)" }}
+                >
+                  <Database size={14} />
+                  View Bronze Ingestion
+                </Link>
+              )}
               <button
                 onClick={resetForm}
                 className="btn btn-ghost"

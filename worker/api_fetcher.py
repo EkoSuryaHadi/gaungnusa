@@ -35,6 +35,7 @@ import requests
 import pandas as pd
 import psycopg2
 import psycopg2.extras
+from psycopg2 import sql as pg_sql
 
 
 # ============================================================
@@ -51,9 +52,17 @@ def get_db_conn():
 
 
 def ensure_schema(conn, schema: str):
-    """Create schema if it doesn't exist."""
+    """Create schema if it doesn't exist.
+    
+    Uses psycopg2.sql.Identifier to safely quote the schema name,
+    preventing SQL injection if the schema name is ever dynamic.
+    """
     with conn.cursor() as cur:
-        cur.execute(f"CREATE SCHEMA IF NOT EXISTS {schema}")
+        cur.execute(
+            pg_sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(
+                pg_sql.Identifier(schema)
+            )
+        )
     conn.commit()
 
 

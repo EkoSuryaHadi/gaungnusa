@@ -714,7 +714,7 @@ export default function NewDashboardPage() {
             fontFamily: "var(--font-display)", fontSize: 28, fontStyle: "italic",
             color: "var(--gold-400)", margin: 0, display: "flex", alignItems: "center", gap: 10 
           }}>
-            Dashboard Builder
+            Visual Builder
             {editingId && <span style={{ fontSize: 14, color: "var(--text-secondary)", fontStyle: "normal", fontFamily: "var(--font-body)", fontWeight: 400 }}>(Editing #{editingId})</span>}
           </h1>
         </div>

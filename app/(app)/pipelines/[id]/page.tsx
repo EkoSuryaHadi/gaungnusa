@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { authFetch } from "@/lib/auth-client";
@@ -49,12 +49,76 @@ export default function PipelineDetailPage() {
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [runResult, setRunResult] = useState<string | null>(null);
+  const isMounted = useRef(true);
+
+  async function pollRun(runId: number) {
+    if (!isMounted.current) return;
+    setRunning(true);
+    setRunResult(`⏳ RUNNING — Processing data in background...`);
+    let completed = false;
+    let attempts = 0;
+    const maxAttempts = 60; // 60 seconds max timeout
+
+    while (attempts < maxAttempts && isMounted.current) {
+      attempts++;
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (!isMounted.current) return;
+      try {
+        const res = await authFetch(`/api/pipelines/${params.id}`);
+        if (!isMounted.current) return;
+        if (res.ok) {
+          const updatedPipeline = await res.json();
+          if (!isMounted.current) return;
+          setPipeline(updatedPipeline);
+          const currentRun = (updatedPipeline.runs || []).find((r: any) => r.id === runId);
+          if (currentRun) {
+            if (currentRun.status === "SUCCESS") {
+              setRunResult(`✅ SUCCESS — ${(currentRun.rowsOutput ?? 0).toLocaleString("id-ID")} rows written`);
+              completed = true;
+              break;
+            } else if (currentRun.status === "FAILED") {
+              setRunResult(`❌ FAILED: ${currentRun.errorMessage || "Unknown error"}`);
+              completed = true;
+              break;
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Polling error:", err);
+      }
+    }
+
+    if (!completed && isMounted.current) {
+      setRunResult(`⚠️ RUNNING in background. Refresh page to see latest status.`);
+    }
+    if (isMounted.current) {
+      setRunning(false);
+    }
+  }
 
   useEffect(() => {
+    isMounted.current = true;
+    let active = true;
+
     authFetch(`/api/pipelines/${params.id}`)
       .then((r) => { if (r.status === 401) { router.push("/login"); return null; } return r.json(); })
-      .then((d) => { if (d) setPipeline(d); })
-      .finally(() => setLoading(false));
+      .then((d) => {
+        if (d && active) {
+          setPipeline(d);
+          const latestRun = d.runs?.[0];
+          if (latestRun && (latestRun.status === "RUNNING" || latestRun.status === "PENDING")) {
+            pollRun(latestRun.id);
+          }
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+      isMounted.current = false;
+    };
   }, [params.id, router]);
 
   async function handleRun() {
@@ -64,22 +128,24 @@ export default function PipelineDetailPage() {
       const res = await authFetch(`/api/pipelines/${params.id}/run`, { method: "POST" });
       const data = await res.json();
       if (res.ok) {
-        setRunResult(`✅ SUCCESS — ${data.rowsOutput || 0} rows written`);
-        // Refresh
+        // Refresh details first to show the run as RUNNING in history immediately
         const r2 = await authFetch(`/api/pipelines/${params.id}`);
         if (r2.ok) setPipeline(await r2.json());
+
+        await pollRun(data.id);
       } else {
         setRunResult(`❌ FAILED: ${data.error || "Unknown error"}`);
+        setRunning(false);
       }
     } catch (e: any) {
       setRunResult(`❌ ${e.message}`);
-    } finally {
       setRunning(false);
     }
   }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="text-slate-400">Loading...</div></div>;
   if (!pipeline) return <div className="min-h-screen flex items-center justify-center"><div className="glass p-8 text-center"><p className="text-red-400">Pipeline not found</p><Link href="/pipelines" className="text-emerald-400">← Back</Link></div></div>;
+
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">

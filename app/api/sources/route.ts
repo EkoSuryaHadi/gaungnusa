@@ -6,6 +6,7 @@ import path from "path";
 import { parse } from "csv-parse/sync";
 import * as XLSX from "xlsx";
 import { randomBytes } from "crypto";
+import { jobQueue } from "@/lib/queue";
 
 export async function GET() {
   const session = await getSession();
@@ -34,6 +35,86 @@ function getWebhookUrl(sourceId: number): string {
   const domain = process.env.WEBHOOK_DOMAIN || "ekosuryahadi.web.id";
   return `https://${domain}/api/webhook/${sourceId}`;
 }
+
+/**
+ * Ingest a CSV/Excel file into the Bronze layer (lakehouse architecture) via JobQueue.
+ */
+function ingestToBronzeBackground(
+  sourceId: number,
+  fileName: string,
+  sourceName: string,
+  fileSize: number,
+  tenantId: number | null,
+): void {
+  // Build a small inline Python script that imports and calls ingest_csv_to_bronze
+  const workerDir = path.join(process.cwd(), "worker").replace(/\\/g, "/");
+  const inlineScript = [
+    `import sys, json`,
+    `sys.path.insert(0, '${workerDir}')`,
+    `from etl_runner import ingest_csv_to_bronze`,
+    `table, rows, cols = ingest_csv_to_bronze('${fileName.replace(/'/g, "\\'")}', ${sourceId}, ${fileSize})`,
+    `print(json.dumps({"table": table, "rows": rows, "columns": cols}))`,
+  ].join("; ");
+
+  jobQueue.enqueue({
+    id: `bronze_ingest_${sourceId}`,
+    type: "bronze_ingest",
+    sourceId,
+    args: [],
+    inlineScript,
+    onComplete: async (code, stdout, stderr) => {
+      const success = code === 0;
+      try {
+        if (success) {
+          // Parse result from stdout
+          const lines = stdout.split("\n");
+          const jsonLine = lines.filter((l) => l.trim().startsWith("{")).pop() || "{}";
+          const result: { table: string; rows: number; columns: { name: string; type: string }[] } = JSON.parse(jsonLine);
+
+          if (result.table && result.rows > 0) {
+            const columnsJson = JSON.stringify(result.columns || []);
+
+            // Register Bronze table in LakehouseTable
+            await prisma.lakehouseTable.upsert({
+              where: {
+                layer_tableName: {
+                  layer: "BRONZE",
+                  tableName: result.table,
+                },
+              },
+              update: {
+                rowsCount: result.rows,
+                schema: columnsJson,
+                updatedAt: new Date(),
+              },
+              create: {
+                layer: "BRONZE",
+                tableName: result.table,
+                displayName: `${sourceName} (File)`,
+                schema: columnsJson,
+                rowsCount: result.rows,
+                sourceId,
+                isSystem: true,
+                ...(tenantId ? { tenantId } : {}),
+              },
+            });
+
+            console.log(`[Bronze Ingest] Source #${sourceId}: ${result.rows} rows → bronze."${result.table}"`);
+          }
+        } else {
+          console.error(`[Bronze Ingest Error for Source #${sourceId}]:`, stderr || "Unknown error");
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`[Bronze Ingest Post-process Error for Source #${sourceId}]:`, msg);
+      }
+    },
+    onError: async (err) => {
+      console.error(`[Bronze Ingest Spawn Error for Source #${sourceId}]:`, err.message);
+    }
+  });
+}
+
 
 // ---------------------------------------------------------------------------
 // POST — dispatcher: JSON body for DATABASE/API/WEBHOOK, multipart for files
@@ -297,6 +378,17 @@ async function handleFileUpload(req: NextRequest, session: any) {
         config: JSON.stringify({ originalName: file.name }),
       },
     });
+
+    // ── AUTO BRONZE INGESTION ──
+    // Ingest the uploaded file into a Bronze table in the background.
+    // This ensures CSV/Excel data goes through the Bronze layer (like API and DB sources).
+    ingestToBronzeBackground(
+      source.id,
+      fileName,
+      name,
+      buffer.length,
+      session.tenantId ?? null,
+    );
 
     return NextResponse.json(source);
   } catch (error: any) {

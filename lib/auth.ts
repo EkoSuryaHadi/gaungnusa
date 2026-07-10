@@ -53,7 +53,7 @@ export async function setSession(data: SessionData): Promise<void> {
   const c = await cookies();
   c.set(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: false,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_TTL,

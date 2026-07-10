@@ -120,8 +120,9 @@ Platform all-in-one yang memungkinkan user non-teknis untuk:
 - Raw ingestion tanpa transformasi
 - Preserve original format & values
 - Append-only (immutable)
-- Full audit trail
+- Full audit trail (`_ingested_at`, `_source_id` auto-injected)
 - Schema exactly as source
+- **Automatic Ingestion:** Upload CSV/Excel otomatis di-ingest ke `bronze.csv_{sourceId}` secara async di background, memastikan seluruh input data melewati Bronze Layer terlebih dahulu.
 
 **Storage:** PostgreSQL schema `bronze`
 
@@ -248,9 +249,23 @@ User mendesain pipeline secara visual:
 | **Aggregate** | 📊 | SUM, AVG, COUNT, MIN, MAX, GROUP BY |
 | **Sort** | ↕️ | ORDER BY |
 | **Pivot** | 📐 | Reshape data (rows → columns) |
-| **Output** | 📤 | Target layer (Silver/Bronze/Gold) |
+| **Output** | 📤 | Target layer (Silver/Bronze/Gold) with Write Modes: Overwrite, Append, Upsert |
 
-### 5.4 Scheduling
+### 5.4 Write Modes (Incremental / Delta Processing)
+Ketika menulis ke target layer (Silver/Gold), pipeline mendukung tiga mode penulisan:
+1. **Overwrite (Full Refresh)**: Menghapus tabel lama (membackup snapshot terlebih dahulu) lalu membuat tabel baru.
+2. **Append (Incremental Insert)**: Memasukkan baris data baru ke tabel yang sudah ada secara langsung tanpa menghapus data lama.
+3. **Upsert (Incremental Merge)**: Melakukan update baris lama dan menyisipkan baris baru (using `ON CONFLICT DO UPDATE`) berdasarkan Primary Key yang dikonfigurasi.
+
+### 5.5 Reliability & Security
+- **SQL Injection Prevention**: Semua dynamic identifiers (table/schema names) disanitasi ketat menggunakan regex `sanitize_identifier` dan parameterization query ($1/$2).
+- **Transactional Staging**: Data ditulis ke temporary table staging lalu di-rename/merge secara atomis di dalam satu database transaction block.
+- **Rollback Snapshot**: Mode overwrite otomatis membuat backup tabel lawas `{table}__bak_{timestamp}` (menyimpan 3 snapshot historis terakhir).
+- **Step-level Error Isolation**: Eror di tahap transformasi tidak langsung mematikan pipeline (non-fatal errors dilanjutkan dengan df sebelumnya, sementara SOURCE/OUTPUT tetap bersifat fatal).
+- **Concurrent Run Protection**: Mencegah race condition dengan memblokir eksekusi ganda jika pipeline yang sama sedang berjalan (409 Conflict).
+- **OOM Protection**: Menggunakan pandas `read_sql` dengan `chunksize=50_000` streaming untuk memproses datasets raksasa tanpa kehabisan RAM.
+
+### 5.6 Scheduling
 - **Manual**: Run now
 - **Scheduled**: Cron expression (daily, hourly, weekly)
 - **Trigger**: On new data arrival (webhook)
@@ -681,17 +696,19 @@ Font Mono:     JetBrains Mono — code & data
 - [x] Lakehouse detail view with schema + preview
 - [x] **Gold layer differentiation**: enforcement (AGGREGATE/JOIN/PIVOT before GOLD), Gold templates (monthly, top N, breakdown, KPI), Gold UI metric cards
 - [x] **Multi-output pipelines**: satu pipeline bisa output ke Silver + Gold
-- [ ] API connector (REST, webhook)
+- [x] API connector (REST, webhook)
 - [ ] Database connector (PostgreSQL, MySQL)
 - [ ] Export dashboard (PDF, CSV, Image)
 - [ ] Dashboard share via public link
 - [ ] Dashboard templates
-- [ ] Data quality rules
+- [x] Data quality rules / step-level validations
 - [ ] Multi-user RBAC
 - [ ] Scheduled pipeline (cron)
 - [x] Nginx + domain setup (ekosuryahadi.web.id + SSL)
 - [ ] WebSocket real-time pipeline progress
 - [ ] DuckDB integration for fast analytical queries
+- [x] Security & Reliability (SQL Sanitization, Staging Transactions, Auto-backups, OOM protection)
+- [x] Incremental & Delta loads (Overwrite, Append, Upsert UI + Engine)
 - [ ] Git push + CI/CD
 
 ---
@@ -767,6 +784,34 @@ Gold benar-benar berbeda dari Silver — bukan copy-paste:
 - Berbeda visual dari Bronze/Silver
 
 **Demo:** `bank_rekon_silver_v2` (50 rows) → `bank_rekon_gold_summary` (6 rows aggregated by Recon_Status)
+
+### 12.7 Transactional & Backup Output (Staging Pattern)
+Tiap write step melakukan penulisan ke table temporer:
+```sql
+-- Transaction block
+BEGIN;
+CREATE TABLE "silver"."sales__tmp_17823812" (...);
+INSERT INTO "silver"."sales__tmp_17823812" VALUES (...); -- batch execution
+ALTER TABLE "silver"."sales" RENAME TO "sales__bak_20260709212210"; -- backup old
+ALTER TABLE "silver"."sales__tmp_17823812" RENAME TO "sales"; -- rename staging to active
+COMMIT;
+```
+Snapshots cadangan yang lebih tua dari 3 versi terakhir dibersihkan secara terjadwal.
+
+### 12.8 Auto Bronze Ingestion & Data Lineage Tracking
+File CSV/Excel yang diunggah ke portal data source langsung diproses secara asinkronus ke Bronze layer database:
+- Nama tabel: `bronze.csv_{sourceId}`
+- Audit tracking: Kolom metadata `_ingested_at` dan `_source_id` disematkan secara otomatis.
+- Data lineage di layer Silver & Gold melacak asal data melalui kolom `_etl_timestamp`, `_pipeline_run_id`, dan `_source_pipeline_id`.
+
+### 12.9 Incremental/Delta Loads
+User dapat mengonfigurasi opsi muatan data di UI designer:
+- Append mode: menyalin baris data staging ke target utama tanpa menghapus data sebelumnya.
+- Upsert mode: memerlukan primary key yang ditentukan user guna mengeksekusi statement:
+  ```sql
+  INSERT INTO "silver"."sales" (...) SELECT ... FROM staging
+  ON CONFLICT ("id") DO UPDATE SET "amount" = EXCLUDED."amount", ...
+  ```
 
 ---
 

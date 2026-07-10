@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { queryDuckDB } from "@/lib/duckdb";
 
 // ── Config ──────────────────────────────────────────────────────
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "";
@@ -244,7 +245,7 @@ async function handleQueryData(args: { sql: string; layer: string; table: string
   }
 
   try {
-    const rows = await prisma.$queryRawUnsafe<Record<string, unknown>[]>(limitedSql);
+    const rows = await queryDuckDB(limitedSql);
 
     if (rows.length === 0) {
       return "Query berhasil tapi tidak ada data yang cocok (0 baris).";

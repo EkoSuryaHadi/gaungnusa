@@ -42,3 +42,8 @@ next-env.d.ts
 gaung.env
 uploads/
 *.bak
+
+# python
+__pycache__/
+*.pyc
+

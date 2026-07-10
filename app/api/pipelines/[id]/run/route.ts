@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { spawn } from "child_process";
 import { writeFileSync } from "fs";
 import path from "path";
+import os from "os";
+import { jobQueue } from "@/lib/queue";
 
 export async function POST(
   _req: NextRequest,
@@ -20,179 +21,240 @@ export async function POST(
 
   if (!pipeline) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  // Concurrent run protection: reject if pipeline is already running
+  const existingRun = await prisma.pipelineRun.findFirst({
+    where: {
+      pipelineId: pipeline.id,
+      status: { in: ["PENDING", "RUNNING"] },
+    },
+  });
+  if (existingRun) {
+    return NextResponse.json(
+      { error: "Pipeline is already running. Please wait for the current run to complete." },
+      { status: 409 }
+    );
+  }
+
   // Create run record
   const run = await prisma.pipelineRun.create({
     data: { pipelineId: pipeline.id, status: "PENDING" },
   });
 
-  try {
-    // Mark running
-    await prisma.pipelineRun.update({
-      where: { id: run.id },
-      data: { status: "RUNNING", startedAt: new Date() },
-    });
+  // Build source info — from DataSource or lakehouse table
+  const sourceInfo: Record<string, unknown> = {};
+  if (pipeline.source) {
+    if (pipeline.source.type === "CSV" || pipeline.source.type === "EXCEL") {
+      // Prefer Bronze table if it exists (auto-ingested on upload)
+      const bronzeTable = await prisma.lakehouseTable.findFirst({
+        where: {
+          sourceId: pipeline.source.id,
+          layer: "BRONZE",
+        },
+        orderBy: { updatedAt: "desc" },
+      });
 
-    // Build source info — from DataSource or lakehouse table
-    const sourceInfo: any = {};
-    if (pipeline.source) {
-      sourceInfo.filePath = pipeline.source.filePath;
-      sourceInfo.fileSize = pipeline.source.fileSize;
-      sourceInfo.fileName = pipeline.source.fileName;
+      if (bronzeTable) {
+        // Read from Bronze table (consistent lakehouse architecture)
+        sourceInfo.sourceTable = bronzeTable.tableName;
+        sourceInfo.sourceLayer = "BRONZE";
+        sourceInfo.fromLakehouse = true;
+      } else {
+        // Fallback: read directly from file (backward compatibility)
+        sourceInfo.filePath = pipeline.source.filePath;
+        sourceInfo.fileSize = pipeline.source.fileSize;
+        sourceInfo.fileName = pipeline.source.fileName;
+      }
+
+      try {
+        const sourceConfig = JSON.parse(pipeline.source.config || "{}");
+        sourceInfo.category = sourceConfig.category || null;
+      } catch {
+        sourceInfo.category = null;
+      }
     } else {
-      // Lakehouse source: get table name from SOURCE step config
-      const sourceStep = pipeline.steps.find((s: any) => s.type === "SOURCE");
-      const sourceConfig = sourceStep ? (typeof sourceStep.config === "string" ? JSON.parse(sourceStep.config) : sourceStep.config) : {};
-      sourceInfo.sourceTable = sourceConfig.sourceTable || sourceConfig.sourceId || "unknown";
-      sourceInfo.sourceLayer = sourceConfig.sourceLayer || "BRONZE";
+      // API, DATABASE, or WEBHOOK
+      // Query the latest BRONZE lakehouse table for this sourceId
+      const latestBronzeTable = await prisma.lakehouseTable.findFirst({
+        where: {
+          sourceId: pipeline.source.id,
+          layer: "BRONZE",
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      if (!latestBronzeTable) {
+        // Mark run failed
+        await prisma.pipelineRun.update({
+          where: { id: run.id },
+          data: {
+            status: "FAILED",
+            finishedAt: new Date(),
+            errorMessage: `Source "${pipeline.source.name}" has not been synchronized yet. Please sync the data source first.`,
+          },
+        });
+        return NextResponse.json(
+          { error: `Source "${pipeline.source.name}" has not been synchronized yet. Please sync the data source first.` },
+          { status: 400 }
+        );
+      }
+
+      sourceInfo.sourceTable = latestBronzeTable.tableName;
+      sourceInfo.sourceLayer = "BRONZE";
       sourceInfo.fromLakehouse = true;
     }
-
-    // Write pipeline config for Python worker
-    const configPath = `/tmp/gaung_pipeline_${run.id}.json`;
-    writeFileSync(configPath, JSON.stringify({
-      pipelineId: pipeline.id,
-      runId: run.id,
-      source: sourceInfo,
-      steps: pipeline.steps.map((s: any) => ({
-        ...s,
-        config: typeof s.config === "string" ? JSON.parse(s.config) : s.config,
-      })),
-    }));
-
-    // Execute Python ETL worker
-    const result = await runETL(configPath);
-
-    const finishedRun = await prisma.pipelineRun.update({
-      where: { id: run.id },
-      data: {
-        status: result.success ? "SUCCESS" : "FAILED",
-        finishedAt: new Date(),
-        rowsOutput: result.rows,
-        errorMessage: result.error || null,
-        logs: result.logs || "",
-      },
-    });
-
-    // Update pipeline status to ACTIVE on success
-    if (result.success) {
-      await prisma.pipeline.update({
-        where: { id: pipeline.id },
-        data: { status: "ACTIVE" },
-      });
-    }
-
-    // Register lakehouse tables for ALL output steps using per-output metadata
-    if (result.success && result.outputs && result.outputs.length > 0) {
-      for (const output of result.outputs) {
-        const columnsJson = JSON.stringify(output.columns || []);
-        await prisma.lakehouseTable.upsert({
-          where: {
-            layer_tableName: {
-              layer: output.layer.toUpperCase(),
-              tableName: output.table,
-            },
-          },
-          update: { rowsCount: output.rows, schema: columnsJson, updatedAt: new Date() },
-          create: {
-            layer: output.layer.toUpperCase(),
-            tableName: output.table,
-            displayName: output.table
-              .replace(/_/g, " ")
-              .replace(/\b\w/g, (c: string) => c.toUpperCase()),
-            schema: columnsJson,
-            rowsCount: output.rows,
-            ...(session.tenantId ? { tenantId: session.tenantId } : {}),
-          },
-        });
-      }
-    } else if (result.success && result.rows > 0) {
-      // Fallback for old runner: use single output metadata
-      const outputStep = pipeline.steps.find((s: any) => s.type === "OUTPUT" && s.outputLayer && s.outputTable);
-      if (outputStep?.outputLayer && outputStep?.outputTable) {
-        const columnsJson = JSON.stringify(result.columns || []);
-        await prisma.lakehouseTable.upsert({
-          where: {
-            layer_tableName: {
-              layer: outputStep.outputLayer,
-              tableName: outputStep.outputTable,
-            },
-          },
-          update: { rowsCount: result.rows, schema: columnsJson, updatedAt: new Date() },
-          create: {
-            layer: outputStep.outputLayer,
-            tableName: outputStep.outputTable,
-            displayName: outputStep.outputTable
-              .replace(/_/g, " ")
-              .replace(/\b\w/g, (c: string) => c.toUpperCase()),
-            schema: columnsJson,
-            rowsCount: result.rows,
-            ...(session.tenantId ? { tenantId: session.tenantId } : {}),
-          },
-        });
-      }
-    }
-
-    return NextResponse.json(finishedRun);
-  } catch (error: any) {
-    await prisma.pipelineRun.update({
-      where: { id: run.id },
-      data: {
-        status: "FAILED",
-        finishedAt: new Date(),
-        errorMessage: error.message,
-      },
-    });
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } else {
+    // Lakehouse source: get table name from SOURCE step config
+    const sourceStep = pipeline.steps.find((s: { type: string }) => s.type === "SOURCE");
+    const sourceConfig = sourceStep ? (typeof sourceStep.config === "string" ? JSON.parse(sourceStep.config) : sourceStep.config) : {};
+    sourceInfo.sourceTable = sourceConfig.sourceTable || sourceConfig.sourceId || "unknown";
+    sourceInfo.sourceLayer = sourceConfig.sourceLayer || "BRONZE";
+    sourceInfo.fromLakehouse = true;
   }
-}
 
-function runETL(configPath: string): Promise<{
-  success: boolean;
-  rows: number;
-  columns: { name: string; type: string }[];
-  outputs?: { layer: string; table: string; rows: number; columns: { name: string; type: string }[] }[];
-  logs: string;
-  error: string | null;
-}> {
-  return new Promise((resolve) => {
-    const scriptPath = path.join(process.cwd(), "worker", "etl_runner.py");
-    const proc = spawn("python3", [scriptPath, configPath], {
-      env: { ...process.env },
-      timeout: 300000,
-    });
+  // Write pipeline config for Python worker
+  const configPath = path.join(os.tmpdir(), `gaung_pipeline_${run.id}.json`);
+  writeFileSync(configPath, JSON.stringify({
+    pipelineId: pipeline.id,
+    runId: run.id,
+    source: sourceInfo,
+    steps: pipeline.steps.map((s: { config: string | object; [key: string]: unknown }) => ({
+      ...s,
+      config: typeof s.config === "string" ? JSON.parse(s.config) : s.config,
+    })),
+  }));
 
-    let stdout = "";
-    let stderr = "";
-
-    proc.stdout.on("data", (data: Buffer) => { stdout += data.toString(); });
-    proc.stderr.on("data", (data: Buffer) => { stderr += data.toString(); });
-
-    proc.on("close", (code: number | null) => {
+  // Enqueue in JobQueue (concurrency & memory managed)
+  jobQueue.enqueue({
+    id: `pipeline_${run.id}`,
+    type: "pipeline",
+    runId: run.id,
+    args: [configPath],
+    scriptPath: path.join(process.cwd(), "worker", "etl_runner.py"),
+    onStart: async () => {
+      await prisma.pipelineRun.update({
+        where: { id: run.id },
+        data: { status: "RUNNING", startedAt: new Date() },
+      });
+    },
+    onComplete: async (code, stdout, stderr) => {
       const logs = stdout + (stderr ? "\n=== STDERR ===\n" + stderr : "");
       try {
         const lines = stdout.split("\n");
         const jsonLine = lines.filter((l) => l.trim().startsWith("{")).pop() || "{}";
-        const result = JSON.parse(jsonLine);
-        resolve({
-          success: code === 0,
-          rows: result.rows || 0,
-          columns: result.columns || [],
-          logs,
-          error: stderr || null,
+        const result: {
+          rows?: number;
+          columns?: { name: string; type: string }[];
+          outputs?: { layer: string; table: string; rows: number; columns: { name: string; type: string }[] }[];
+        } = JSON.parse(jsonLine);
+
+        const success = code === 0;
+
+        // Update PipelineRun status
+        await prisma.pipelineRun.update({
+          where: { id: run.id },
+          data: {
+            status: success ? "SUCCESS" : "FAILED",
+            finishedAt: new Date(),
+            rowsOutput: result.rows || 0,
+            errorMessage: success ? null : (stderr || null),
+            logs,
+          },
         });
-      } catch {
-        resolve({
-          success: code === 0,
-          rows: 0,
-          columns: [],
-          logs,
-          error: stderr || null,
+
+        // Update pipeline status to ACTIVE on success
+        if (success) {
+          await prisma.pipeline.update({
+            where: { id: pipeline.id },
+            data: { status: "ACTIVE" },
+          });
+        }
+
+        const tenantId = session.tenantId ?? null;
+        // Register lakehouse tables for ALL output steps using per-output metadata
+        if (success && result.outputs && result.outputs.length > 0) {
+          for (const output of result.outputs) {
+            const columnsJson = JSON.stringify(output.columns || []);
+            await prisma.lakehouseTable.upsert({
+              where: {
+                layer_tableName: {
+                  layer: output.layer.toUpperCase(),
+                  tableName: output.table,
+                },
+              },
+              update: { rowsCount: output.rows, schema: columnsJson, updatedAt: new Date() },
+              create: {
+                layer: output.layer.toUpperCase(),
+                tableName: output.table,
+                displayName: output.table
+                  .replace(/_/g, " ")
+                  .replace(/\b\w/g, (c: string) => c.toUpperCase()),
+                schema: columnsJson,
+                rowsCount: output.rows,
+                ...(tenantId ? { tenantId } : {}),
+              },
+            });
+          }
+        } else if (success && (result.rows || 0) > 0) {
+          // Fallback for old runner: use single output metadata
+          const outputStep = pipeline.steps.find((s) => s.type === "OUTPUT" && s.outputLayer && s.outputTable);
+          if (outputStep?.outputLayer && outputStep?.outputTable) {
+            const columnsJson = JSON.stringify(result.columns || []);
+            await prisma.lakehouseTable.upsert({
+              where: {
+                layer_tableName: {
+                  layer: outputStep.outputLayer,
+                  tableName: outputStep.outputTable,
+                },
+              },
+              update: { rowsCount: result.rows || 0, schema: columnsJson, updatedAt: new Date() },
+              create: {
+                layer: outputStep.outputLayer,
+                tableName: outputStep.outputTable,
+                displayName: outputStep.outputTable
+                  .replace(/_/g, " ")
+                  .replace(/\b\w/g, (c: string) => c.toUpperCase()),
+                schema: columnsJson,
+                rowsCount: result.rows || 0,
+                ...(tenantId ? { tenantId } : {}),
+              },
+            });
+          }
+        }
+      } catch (err: unknown) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        await prisma.pipelineRun.update({
+          where: { id: run.id },
+          data: {
+            status: "FAILED",
+            finishedAt: new Date(),
+            errorMessage: `Post-processing error: ${errorMsg}`,
+            logs,
+          },
+        }).catch(() => {
+          console.error(`[ETL] Failed to update run ${run.id}:`, errorMsg);
         });
       }
-    });
+    },
+    onError: async (err) => {
+      await prisma.pipelineRun.update({
+        where: { id: run.id },
+        data: {
+          status: "FAILED",
+          finishedAt: new Date(),
+          errorMessage: `Process spawn error: ${err.message}`,
+        },
+      }).catch(() => {
+        console.error(`[ETL] Failed to update run ${run.id}:`, err.message);
+      });
+    }
+  });
 
-    proc.on("error", (err) => {
-      resolve({ success: false, rows: 0, columns: [], logs: "", error: err.message });
-    });
+  return NextResponse.json({
+    ...run,
+    status: "PENDING",
+    message: "Pipeline enqueued. Track progress via WebSocket or refresh the page.",
   });
 }
+

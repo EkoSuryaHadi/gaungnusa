@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { queryDuckDB } from "@/lib/duckdb";
+import { buildWidgetQuery } from "@/lib/queryGuard";
 
 export async function GET(
   _req: NextRequest,
@@ -32,15 +34,10 @@ export async function GET(
 
     if (layer && table) {
       try {
-        let query: string;
-        if (widget.type === "KPI" && cfg.xField && cfg.yField) {
-          const agg = cfg.yField.toUpperCase();
-          query = `SELECT ${agg}("${cfg.xField}") as "${cfg.xField}" FROM "${layer}"."${table}"`;
-        } else {
-          query = `SELECT * FROM "${layer}"."${table}" LIMIT 1000`;
-        }
+        // Security: use buildWidgetQuery() which validates all identifiers
+        const query = buildWidgetQuery(layer, table, widget.type, cfg.xField, cfg.yField);
 
-        const data = await prisma.$queryRawUnsafe<Record<string, unknown>[]>(query);
+        const data = await queryDuckDB(query);
         if (data.length > 0) {
           const cols = Object.keys(data[0]);
           rows.push(cols.join(","));

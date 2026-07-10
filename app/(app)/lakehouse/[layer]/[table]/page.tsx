@@ -380,7 +380,7 @@ export default function TableDetailPage() {
                       {columns.map((col) => (
                         <TableCell
                           key={col}
-                          className="whitespace-nowrap max-w-[300px] truncate"
+                          className="whitespace-nowrap max-w-[300px] truncate font-mono text-sm"
                           title={row[col] === null ? "null" : String(row[col])}
                         >
                           {row[col] === null ? (

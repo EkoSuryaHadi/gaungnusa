@@ -104,10 +104,10 @@ export async function POST(request: Request) {
       },
     });
 
-    // Set cookie as well
+    // Set cookie as well — flags must match setSession() in lib/auth.ts
     response.cookies.set("gaung_session", token, {
-      httpOnly: false,
-      secure: false,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
       maxAge: 604800,

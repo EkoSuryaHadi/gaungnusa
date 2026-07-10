@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { queryDuckDB } from "@/lib/duckdb";
+import { validateLayer, validateIdentifier, isSelectOnly } from "@/lib/queryGuard";
 
 function serializeRows(rows: any): any {
   return JSON.parse(
@@ -29,17 +30,29 @@ export async function POST(req: NextRequest) {
 
     let sql: string;
     if (query) {
+      // Security: only allow read-only SELECT statements
+      if (!isSelectOnly(query)) {
+        return NextResponse.json(
+          { error: "Only SELECT queries are permitted." },
+          { status: 400 }
+        );
+      }
       sql = query;
     } else if (layer && table) {
-      sql = `SELECT * FROM "${layer.toLowerCase()}"."${table.toLowerCase()}" LIMIT 1000`;
+      // Security: validate layer and table identifiers before interpolation
+      const safeLayer = validateLayer(layer);
+      const safeTable = validateIdentifier(table, "Table name");
+      sql = `SELECT * FROM "${safeLayer}"."${safeTable}" LIMIT 1000`;
     } else {
       return NextResponse.json({ error: "layer+table or query required" }, { status: 400 });
     }
 
-    const rows = await prisma.$queryRawUnsafe(sql);
+    const rows = await queryDuckDB(sql);
     const safe = serializeRows(rows);
     return NextResponse.json({ rows: safe, sql });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const status = error instanceof TypeError ? 400 : 500;
+    return NextResponse.json({ error: error.message }, { status });
   }
 }
+

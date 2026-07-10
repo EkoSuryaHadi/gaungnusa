@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { queryDuckDB } from "@/lib/duckdb";
+import { buildWidgetQuery } from "@/lib/queryGuard";
 
 export async function GET(
   _req: NextRequest,
@@ -24,17 +26,15 @@ export async function GET(
 
       if (layer && table) {
         try {
-          let query: string;
-          if (w.type === "KPI" && cfg.xField && cfg.yField) {
-            const agg = cfg.yField.toUpperCase();
-            query = `SELECT ${agg}("${cfg.xField}") as "${cfg.xField}" FROM "${layer}"."${table}"`;
-          } else {
-            query = `SELECT * FROM "${layer}"."${table}" LIMIT 1000`;
-          }
-          rows = await prisma.$queryRawUnsafe(query);
+          // Security: use buildWidgetQuery() which validates all identifiers
+          const query = buildWidgetQuery(layer, table, w.type, cfg.xField, cfg.yField);
+          rows = await queryDuckDB(query);
           // Convert BigInt
           rows = JSON.parse(JSON.stringify(rows, (_, v) => typeof v === "bigint" ? Number(v) : v));
-        } catch {}
+        } catch (err) {
+          // Validation error or query failure — return empty data for this widget
+          console.warn(`[Widget ${w.id}] Query skipped:`, (err as Error).message);
+        }
       }
       return { id: w.id, type: w.type, title: w.title, cfg, rows };
     })
