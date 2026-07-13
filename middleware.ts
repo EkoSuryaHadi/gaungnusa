@@ -3,13 +3,15 @@ import { verifySessionToken, COOKIE_NAME } from "@/lib/auth";
 
 // Only protect API routes — page auth is handled by client-side AuthGuard
 const PROTECTED_API_PREFIXES = ["/api/sources", "/api/pipelines", "/api/dashboards", "/api/dashboard", "/api/lakehouse", "/api/tenants"];
+const PUBLIC_API_PREFIXES = ["/api/export", "/api/auth", "/api/public", "/api/webhook", "/api/metabase"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Only run for protected API routes
   const isProtectedApi = PROTECTED_API_PREFIXES.some(p => pathname.startsWith(p));
-  if (!isProtectedApi) return NextResponse.next();
+  const isPublicApi = PUBLIC_API_PREFIXES.some(p => pathname.startsWith(p));
+  if (!isProtectedApi || isPublicApi) return NextResponse.next();
 
   // Allow POST to /api/tenants (tenant registration) without auth
   if (pathname === "/api/tenants" && request.method === "POST") {
