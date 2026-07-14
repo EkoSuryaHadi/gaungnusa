@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   try {
     // Run lineage visualizer and capture output
-    const cmd = `cd /home/ubuntu/gaung_v3 && python3 -c "
+    const cmd = `cd /home/ubuntu/gaung_v3 && /usr/bin/python3 -c "
 import sys; sys.path.insert(0, '.')
 from lineage.tracker import get_lineage_graph
 import json

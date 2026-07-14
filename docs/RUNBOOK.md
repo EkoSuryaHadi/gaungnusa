@@ -34,3 +34,12 @@
 | 8 | Test DuckDB query | ✅ Done | SELECT 42 → OK |
 | 9 | Test MinIO upload | ✅ Done | `bronze/test/hello.json` |
 | 10 | Create project structure | ✅ Done | `/home/ubuntu/gaung_v3/` |
+| 11 | Bronze ingest engine | ✅ Done | CSV→Parquet→MinIO→DuckDB |
+| 12 | dbt models (6 models) | ✅ Done | Bronze→Silver→Gold, incremental |
+| 13 | SCD Type 2 forward-fill | ✅ Done | DEV-Q null→24.2 imputed |
+| 14 | Anomaly detection | ✅ Done | DEV-P flagged CRITICAL 219°C |
+| 15 | Dagster pipeline (3 assets) | ✅ Done | 22s full run, hourly schedule |
+| 16 | Data lineage tracker | ✅ Done | 7 nodes, 6 edges, DuckDB-backed |
+| 17 | V2→V3 migration | ✅ Done | Parity: ✅✅✅ (Silver improved) |
+| 18 | V3 API endpoints | ✅ Done | `/api/v3`, `/api/lineage`, `/api/export` |
+| 19 | All tests passed | ✅ Done | 5/5 services live |
