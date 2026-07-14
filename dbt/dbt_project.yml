@@ -1,0 +1,15 @@
+name: gaung_silver
+version: '3.0'
+profile: gaung_silver
+
+model-paths: ["models"]
+target-path: "target"
+
+models:
+  gaung_silver:
+    bronze:
+      +materialized: view
+    silver:
+      +materialized: table
+    gold:
+      +materialized: table

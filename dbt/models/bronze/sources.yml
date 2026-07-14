@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: gaung_silver
+    schema: main
+    tables:
+      - name: bronze_data_iot_6_latest
+        description: "IoT data ingested from Bronze layer (MinIO → DuckDB)"
+        columns:
+          - name: device_id
+            tests:
+              - not_null
+          - name: temperature_c
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: ">= -50 AND <= 300"
+          - name: humidity_pct
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: ">= 0 AND <= 100"
+          - name: battery_v
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: ">= 0 AND <= 10"
