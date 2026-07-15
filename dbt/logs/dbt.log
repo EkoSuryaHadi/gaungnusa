@@ -5949,3 +5949,33 @@ ORDER BY hour_bucket DESC
 [0m13:32:25.881144 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7fb8c3061750>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7fb8c6c18a90>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7fb8c2f251e0>]}
 [0m13:32:25.881910 [debug] [MainThread]: Flushing usage events
 [0m13:32:27.263408 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m11:17:52.540099 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2029f417b0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2028d802b0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2028d80250>]}
+
+
+============================== 11:17:52.566590 | dec24c6b-688b-420c-a822-278049d1372c ==============================
+[0m11:17:52.566590 [info ] [MainThread]: Running with dbt=1.11.12
+[0m11:17:52.567690 [debug] [MainThread]: running dbt with arguments {'partial_parse': 'True', 'target_path': 'None', 'use_experimental_parser': 'False', 'static_parser': 'True', 'fail_fast': 'False', 'indirect_selection': 'eager', 'use_colors': 'True', 'cache_selected_only': 'False', 'write_json': 'True', 'profiles_dir': '/home/ubuntu/.dbt', 'version_check': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'invocation_command': 'dbt run --select data_iot_10k', 'log_cache_events': 'False', 'no_print': 'None', 'printer_width': '80', 'log_path': '/home/ubuntu/gaung_v3/dbt/logs', 'log_format': 'default', 'quiet': 'False', 'introspect': 'True', 'debug': 'False', 'send_anonymous_usage_stats': 'True', 'empty': 'False', 'warn_error': 'None'}
+[0m11:17:53.808142 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'dec24c6b-688b-420c-a822-278049d1372c', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2028d5dcf0>]}
+[0m11:17:53.936761 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'dec24c6b-688b-420c-a822-278049d1372c', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2028d5e110>]}
+[0m11:17:53.959867 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m11:17:54.349688 [debug] [MainThread]: checksum: f368f5348cf42803b94ef7fb8257ecf3bf9a9a16dd9c8c51fe5172f2dbeb457f, vars: {}, profile: , target: , version: 1.11.12
+[0m11:17:54.862280 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m11:17:54.863148 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m11:17:54.863733 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m11:17:55.035184 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'dec24c6b-688b-420c-a822-278049d1372c', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2028f0a410>]}
+[0m11:17:55.266790 [debug] [MainThread]: Wrote artifact WritableManifest to /home/ubuntu/gaung_v3/dbt/target/manifest.json
+[0m11:17:55.350223 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/ubuntu/gaung_v3/dbt/target/semantic_manifest.json
+[0m11:17:55.364415 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'dec24c6b-688b-420c-a822-278049d1372c', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2024223970>]}
+[0m11:17:55.365352 [info ] [MainThread]: Found 6 models, 4 data tests, 1 source, 485 macros
+[0m11:17:55.366231 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'dec24c6b-688b-420c-a822-278049d1372c', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2024223ee0>]}
+[0m11:17:55.367273 [warn ] [MainThread]: The selection criterion 'data_iot_10k' does not match any enabled nodes
+[0m11:17:55.369042 [warn ] [MainThread]: Nothing to do. Try checking your model configs and model specification args
+[0m11:17:55.372547 [debug] [MainThread]: Command end result
+[0m11:17:55.427092 [debug] [MainThread]: Wrote artifact WritableManifest to /home/ubuntu/gaung_v3/dbt/target/manifest.json
+[0m11:17:55.429908 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/ubuntu/gaung_v3/dbt/target/semantic_manifest.json
+[0m11:17:55.435736 [debug] [MainThread]: Wrote artifact RunExecutionResult to /home/ubuntu/gaung_v3/dbt/target/run_results.json
+[0m11:17:55.437219 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": true, "command_wall_clock_time": 3.0176146, "process_in_blocks": "36736", "process_kernel_time": 0.239606, "process_mem_max_rss": "152952", "process_out_blocks": "2336", "process_user_time": 3.539734}
+[0m11:17:55.438061 [debug] [MainThread]: Command `dbt run` succeeded at 11:17:55.437902 after 3.02 seconds
+[0m11:17:55.438796 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2029f417b0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f202422ad70>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f202422a470>]}
+[0m11:17:55.439628 [debug] [MainThread]: Flushing usage events
+[0m11:17:56.718653 [debug] [MainThread]: An error was encountered while trying to flush usage events
