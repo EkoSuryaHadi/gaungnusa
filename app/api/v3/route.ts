@@ -13,12 +13,15 @@ export async function GET(req: NextRequest) {
   }
 
   const endpoint = req.nextUrl.searchParams.get("endpoint") || "dashboard";
+  const table = req.nextUrl.searchParams.get("table") || "iot_device_summary";
+  const layer = req.nextUrl.searchParams.get("layer") || "gold";
 
   try {
-    const { stdout } = await execAsync(
-      `/usr/bin/python3 /home/ubuntu/gaung_v3/api_helper.py ${endpoint}`,
-      { timeout: 15000 }
-    );
+    const cmd = endpoint === "insight"
+      ? `/usr/bin/python3 /home/ubuntu/gaung_v3/api_helper.py ${endpoint} ${table} ${layer}`
+      : `/usr/bin/python3 /home/ubuntu/gaung_v3/api_helper.py ${endpoint}`;
+
+    const { stdout } = await execAsync(cmd, { timeout: 30000 });
     return NextResponse.json(JSON.parse(stdout.trim()));
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
