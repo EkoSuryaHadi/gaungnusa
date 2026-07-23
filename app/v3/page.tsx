@@ -1,274 +1,224 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 
 const TOKEN = "gaung-export-2026";
-const API = "/api/v3";
 
-interface Insight {
-  type: string;
-  title: string;
-  severity: string;
-  [key: string]: any;
-}
-
-interface PipelineStatus {
+interface TableInfo {
+  name: string;
+  rows: number;
   layer: string;
-  icon: string;
-  label: string;
-  status: "idle" | "running" | "done" | "error";
-  rows?: number;
-  time?: string;
-  insight?: string;
 }
 
-export default function V3Page() {
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [pipeline, setPipeline] = useState<PipelineStatus[]>([
-    { layer: "source", icon: "📁", label: "Upload CSV", status: "idle" },
-    { layer: "bronze", icon: "🥉", label: "Bronze (MinIO)", status: "idle" },
-    { layer: "silver", icon: "🥈", label: "Silver (dbt SCD2)", status: "idle" },
-    { layer: "gold", icon: "🥇", label: "Gold (Dashboard)", status: "idle" },
-    { layer: "insight", icon: "🧠", label: "Auto-Insight AI", status: "idle" },
-  ]);
-  const [insights, setInsights] = useState<Insight[]>([]);
-  const [narrative, setNarrative] = useState("");
-  const [tableName, setTableName] = useState("");
-  const [summary, setSummary] = useState<Record<string, string>>({});
-  const [error, setError] = useState("");
+interface InsightResult {
+  insights: any[];
+  narrative: string;
+  rows_analyzed: number;
+}
 
-  const updateStep = (i: number, update: Partial<PipelineStatus>) => {
-    setPipeline((prev) => prev.map((s, idx) => (idx === i ? { ...s, ...update } : s)));
-  };
+export default function V3Dashboard() {
+  const [tables, setTables] = useState<TableInfo[]>([]);
+  const [selectedTable, setSelectedTable] = useState<string>("");
+  const [insight, setInsight] = useState<InsightResult | null>(null);
+  const [lineage, setLineage] = useState<{ nodes: number; edges: number }>({ nodes: 0, edges: 0 });
+  const [loading, setLoading] = useState(true);
+  const [insightLoading, setInsightLoading] = useState(false);
 
-  const handleUpload = useCallback(async () => {
-    if (!file) return;
-    setUploading(true);
-    setError("");
-    setInsights([]);
-    setNarrative("");
+  useEffect(() => {
+    async function load() {
+      try {
+        const [tablesRes, lineageRes] = await Promise.all([
+          fetch(`/api/v3/tables?token=${TOKEN}`),
+          fetch(`/api/lineage?token=${TOKEN}`),
+        ]);
+        const tablesData = await tablesRes.json();
+        const lineageData = await lineageRes.json();
 
-    const sourceName = file.name.replace(/\.(csv|xlsx|xls)$/i, "").replace(/[^a-zA-Z0-9_]/g, "_");
-    setTableName(sourceName);
-
-    // Step 1: Upload → Bronze
-    updateStep(0, { status: "running" });
-    updateStep(1, { status: "running" });
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("sourceName", sourceName);
-      formData.append("token", TOKEN);
-
-      const uploadRes = await fetch(`/api/v3/upload`, {
-        method: "POST",
-        body: formData,
-      });
-      const bronze = await uploadRes.json();
-
-      if (bronze.error) throw new Error(bronze.error);
-
-      updateStep(1, {
-        status: "done",
-        rows: bronze.rows,
-        time: bronze.time,
-      });
-
-      // Step 2: Run dbt → Silver
-      updateStep(2, { status: "running" });
-      const silverRes = await fetch(`${API}/pipeline?step=silver&table=${sourceName}&token=${TOKEN}`);
-      const silver = await silverRes.json();
-
-      if (silver.error) throw new Error(silver.error);
-
-      updateStep(2, {
-        status: "done",
-        rows: silver.rows,
-        time: silver.time,
-      });
-
-      // Step 3: Run dbt → Gold
-      updateStep(3, { status: "running" });
-      const goldRes = await fetch(`${API}/pipeline?step=gold&table=${sourceName}&token=${TOKEN}`);
-      const gold = await goldRes.json();
-
-      if (gold.error) throw new Error(gold.error);
-
-      updateStep(3, {
-        status: "done",
-        rows: gold.rows,
-        time: gold.time,
-      });
-
-      // Step 4: Auto-Insight
-      updateStep(4, { status: "running" });
-      const insightRes = await fetch(`${API}?endpoint=insight&table=${sourceName}&layer=bronze&token=${TOKEN}`);
-      const insight = await insightRes.json();
-
-      setInsights(insight.insights || []);
-      setNarrative(insight.narrative || "");
-
-      updateStep(4, {
-        status: "done",
-        insight: `${insight.insights_count || 0} insight ditemukan`,
-      });
-
-      // Get summary
-      const dashRes = await fetch(`${API}?endpoint=dashboard&token=${TOKEN}`);
-      const dash = await dashRes.json();
-      setSummary(dash);
-    } catch (e: any) {
-      setError(e.message);
-      updateStep(1, { status: "error" });
-      updateStep(2, { status: "idle" });
-      updateStep(3, { status: "idle" });
-      updateStep(4, { status: "idle" });
+        setTables(tablesData.tables || []);
+        setLineage({ nodes: lineageData.nodes?.length || 0, edges: lineageData.edges?.length || 0 });
+      } catch (e) {
+        console.error(e);
+      }
+      setLoading(false);
     }
-    setUploading(false);
-  }, [file]);
+    load();
+  }, []);
 
-  const pipelineRunning = pipeline.some((s) => s.status === "running");
-  const pipelineDone = pipeline.every((s) => s.status === "done");
+  async function runInsight(tableName: string) {
+    setSelectedTable(tableName);
+    setInsightLoading(true);
+    try {
+      const res = await fetch(`/api/v3?endpoint=insight&table=${tableName}&token=${TOKEN}`);
+      const data = await res.json();
+      setInsight(data);
+    } catch (e) {
+      console.error(e);
+    }
+    setInsightLoading(false);
+  }
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center">
+        <div className="animate-spin text-4xl mb-4">⚡</div>
+        <div className="text-xl">Memuat Gaung V3...</div>
+      </div>
+    );
+  }
+
+  const totalRows = tables.reduce((sum, t) => sum + t.rows, 0);
+  const goldTables = tables.filter((t) => t.layer === "gold");
+  const silverTables = tables.filter((t) => t.layer === "silver");
+  const bronzeTables = tables.filter((t) => t.layer === "bronze");
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-6 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">⚡ Gaung V3</h1>
-        <p className="text-gray-500 mt-1">Upload CSV → Lakehouse → Auto-Insight dalam hitungan detik</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">⚡ Gaung V3</h1>
+          <p className="text-green-600 flex items-center gap-1 mt-1">
+            <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+            Full V3 — DuckDB + MinIO + Dagster
+          </p>
+        </div>
+        <div className="text-right text-sm text-gray-500">
+          <div>
+            {tables.length} tabel · {totalRows.toLocaleString()} baris
+          </div>
+          <div>
+            Lineage: {lineage.nodes} nodes · {lineage.edges} edges
+          </div>
+        </div>
       </div>
 
-      {/* Upload Area */}
-      <div className="bg-white border-2 border-dashed border-gray-300 rounded-2xl p-8 mb-6 text-center hover:border-blue-400 transition-colors">
-        <input
-          type="file"
-          accept=".csv,.xlsx,.xls"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
-          className="hidden"
-          id="v3-upload"
+      {/* Stats */}
+      <div className="grid grid-cols-4 gap-3 mb-8">
+        <StatCard label="Total Tabel" value={tables.length.toString()} icon="📊" />
+        <StatCard label="Total Baris" value={totalRows.toLocaleString()} icon="📋" />
+        <StatCard
+          label="🥇 Gold"
+          value={goldTables.length.toString()}
+          sub={`${goldTables.reduce((s, t) => s + t.rows, 0).toLocaleString()} rows`}
+          icon="🥇"
         />
-        <label htmlFor="v3-upload" className="cursor-pointer">
-          <div className="text-4xl mb-3">📤</div>
-          <div className="text-lg font-medium">
-            {file ? file.name : "Klik untuk upload CSV atau Excel"}
-          </div>
-          <div className="text-sm text-gray-400 mt-1">
-            {file ? `${(file.size / 1024).toFixed(1)} KB` : "Maks 50MB · CSV, XLSX"}
-          </div>
-        </label>
-
-        {file && !pipelineRunning && (
-          <button
-            onClick={handleUpload}
-            disabled={uploading}
-            className="mt-4 px-8 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition-all"
-          >
-            🚀 Proses dengan V3 Lakehouse
-          </button>
-        )}
+        <StatCard
+          label="🥈 Silver"
+          value={silverTables.length.toString()}
+          sub={`${silverTables.reduce((s, t) => s + t.rows, 0).toLocaleString()} rows`}
+          icon="🥈"
+        />
       </div>
 
-      {/* Pipeline Progress */}
-      <div className="bg-white border rounded-2xl p-6 mb-6">
-        <h2 className="font-semibold text-lg mb-4">⚙️ Pipeline Status</h2>
-        <div className="space-y-3">
-          {pipeline.map((step, i) => (
-            <div
-              key={step.layer}
-              className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
-                step.status === "running"
-                  ? "bg-blue-50 border border-blue-200 animate-pulse"
-                  : step.status === "done"
-                  ? "bg-green-50 border border-green-200"
-                  : step.status === "error"
-                  ? "bg-red-50 border border-red-200"
-                  : "bg-gray-50 border border-gray-100"
-              }`}
-            >
-              <div className="text-2xl w-10 text-center">{step.icon}</div>
-              <div className="flex-1">
-                <div className="font-medium text-sm">{step.label}</div>
-                {step.status === "running" && (
-                  <div className="text-xs text-blue-600">Memproses...</div>
-                )}
-                {step.status === "done" && step.rows && (
-                  <div className="text-xs text-green-600">
-                    {step.rows.toLocaleString()} baris · {step.time}
-                  </div>
-                )}
-                {step.status === "done" && step.insight && (
-                  <div className="text-xs text-purple-600">{step.insight}</div>
-                )}
-                {step.status === "error" && (
-                  <div className="text-xs text-red-600">Gagal</div>
-                )}
-              </div>
-              <div className="text-lg">
-                {step.status === "idle" && "○"}
-                {step.status === "running" && "⏳"}
-                {step.status === "done" && "✅"}
-                {step.status === "error" && "❌"}
+      {/* Tables Grid */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          🗄️ Data Lakehouse
+          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">33 tables migrated</span>
+        </h2>
+
+        {["gold", "silver", "bronze"].map((layer) => {
+          const layerTables = tables.filter((t) => t.layer === layer);
+          if (layerTables.length === 0) return null;
+          const icons: Record<string, string> = { gold: "🥇", silver: "🥈", bronze: "🥉" };
+          return (
+            <div key={layer} className="mb-4">
+              <h3 className="text-sm font-medium text-gray-500 mb-2 uppercase">
+                {icons[layer]} {layer} Layer
+              </h3>
+              <div className="grid grid-cols-3 gap-2">
+                {layerTables.map((t) => (
+                  <button
+                    key={t.name}
+                    onClick={() => runInsight(t.name)}
+                    className={`text-left p-3 rounded-xl border transition-all text-sm hover:border-blue-300 hover:bg-blue-50 ${
+                      selectedTable === t.name
+                        ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
+                        : "border-gray-200 bg-white"
+                    }`}
+                  >
+                    <div className="font-medium truncate">{t.name}</div>
+                    <div className="text-xs text-gray-400">{t.rows.toLocaleString()} rows</div>
+                  </button>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
-      {/* Error */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-red-700 text-sm">
-          ❌ {error}
-        </div>
-      )}
-
-      {/* Auto-Insight */}
-      {pipelineDone && narrative && (
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6 mb-6">
+      {/* Auto-Insight Panel */}
+      {selectedTable && (
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6">
           <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
-            🧠 Auto-Insight Engine
-            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
-              ML-Powered
-            </span>
+            🧠 Auto-Insight: {selectedTable}
+            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">ML</span>
           </h2>
-          {insights.map((ins, i) => (
-            <div
-              key={i}
-              className={`inline-block px-3 py-1.5 rounded-lg text-sm mr-2 mb-2 ${
-                ins.severity === "critical"
-                  ? "bg-red-100 text-red-700"
-                  : ins.severity === "warning"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : "bg-blue-100 text-blue-700"
-              }`}
-            >
-              {ins.title}
-            </div>
-          ))}
-          <div className="text-gray-700 leading-relaxed whitespace-pre-line mt-3 text-sm">
-            {narrative}
-          </div>
+          {insightLoading ? (
+            <div className="animate-pulse text-gray-500">Menganalisis...</div>
+          ) : insight ? (
+            <>
+              {insight.insights?.map((ins: any, i: number) => (
+                <span
+                  key={i}
+                  className={`inline-block px-3 py-1.5 rounded-lg text-sm mr-2 mb-2 ${
+                    ins.severity === "critical"
+                      ? "bg-red-100 text-red-700"
+                      : ins.severity === "warning"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-blue-100 text-blue-700"
+                  }`}
+                >
+                  {ins.title}
+                </span>
+              ))}
+              <div className="text-gray-700 whitespace-pre-line text-sm mt-3">
+                {insight.narrative}
+              </div>
+              <div className="text-xs text-gray-400 mt-2">
+                {insight.rows_analyzed?.toLocaleString()} rows analyzed
+              </div>
+            </>
+          ) : (
+            <div className="text-gray-400 text-sm">Klik run insight untuk analisis</div>
+          )}
         </div>
       )}
 
-      {/* Summary Stats */}
-      {pipelineDone && Object.keys(summary).length > 0 && (
-        <div className="grid grid-cols-4 gap-3 mb-6">
-          <MiniStat label="Baris" value={summary.total_readings || "?"} />
-          <MiniStat label="Kolom" value={summary.total_devices || "?"} />
-          <MiniStat label="Anomali" value={summary.anomalous_readings || "0"} alert />
-        </div>
-      )}
+      {/* Upload CTA */}
+      <div className="mt-8 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-6 text-center">
+        <h3 className="text-lg font-semibold mb-2">📤 Upload Data Baru</h3>
+        <p className="text-sm text-gray-500 mb-4">
+          Drag &amp; drop CSV, Excel — langsung diproses Bronze → Silver → Gold + Auto-Insight
+        </p>
+        <a
+          href="/v3/upload"
+          className="inline-block px-6 py-3 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-all"
+        >
+          🚀 Upload &amp; Proses
+        </a>
+      </div>
     </div>
   );
 }
 
-function MiniStat({ label, value, alert }: { label: string; value: string; alert?: boolean }) {
+function StatCard({
+  label,
+  value,
+  icon,
+  sub,
+}: {
+  label: string;
+  value: string;
+  icon: string;
+  sub?: string;
+}) {
   return (
-    <div className="bg-white border rounded-xl p-3 text-center">
-      <div className={`text-xl font-bold ${alert ? "text-red-600" : ""}`}>{value}</div>
-      <div className="text-xs text-gray-400">{label}</div>
+    <div className="bg-white border rounded-xl p-4 shadow-sm">
+      <div className="text-2xl mb-1">{icon}</div>
+      <div className={`font-bold ${sub ? "text-xl" : "text-2xl"}`}>{value}</div>
+      <div className="text-xs text-gray-500">{label}</div>
+      {sub && <div className="text-xs text-gray-400 mt-0.5">{sub}</div>}
     </div>
   );
 }
