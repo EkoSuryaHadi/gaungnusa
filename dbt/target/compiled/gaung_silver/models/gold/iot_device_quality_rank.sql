@@ -36,6 +36,8 @@ SELECT
 FROM "gaung"."main"."data_iot_silver"
 
 
+  WHERE timestamp > (SELECT MAX(generated_at) FROM "gaung"."main"."iot_device_quality_rank")
+
 
 GROUP BY device_id
 ORDER BY dqi_score DESC

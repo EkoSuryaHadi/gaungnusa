@@ -44,4 +44,38 @@ elif ENDPOINT == "insight":
     result = run_auto_insight(table, layer)
     print(json.dumps(result, default=str, ensure_ascii=False))
 
+elif ENDPOINT == "tables":
+    tables = con.execute("""
+        SELECT table_name, 
+               (SELECT count(*) FROM information_schema.columns c WHERE c.table_name = t.table_name) as cols
+        FROM information_schema.tables t
+        WHERE table_type = 'BASE TABLE' 
+          AND table_name NOT LIKE '\_%' ESCAPE '\'
+          AND table_name != 'source_iot'
+        ORDER BY table_name
+    """).fetchall()
+    
+    result = {"tables": []}
+    for name, cols in tables:
+        try:
+            rows = con.execute(f'SELECT count(*) FROM "{name}"').fetchone()[0]
+        except:
+            rows = 0
+        
+        # Determine layer
+        layer = "bronze"
+        if name.startswith("silver_"):
+            layer = "silver"
+        elif name.startswith("gold_"):
+            layer = "gold"
+        
+        result["tables"].append({
+            "name": name.replace("bronze_", "").replace("silver_", "").replace("gold_", ""),
+            "full_name": name,
+            "rows": rows,
+            "columns": cols,
+            "layer": layer,
+        })
+    print(json.dumps(result, default=str))
+
 con.close()

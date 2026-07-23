@@ -28,5 +28,7 @@ SELECT
 FROM "gaung"."main"."data_iot_silver"
 
 
+  WHERE timestamp > (SELECT MAX(last_reading_at) FROM "gaung"."main"."iot_device_summary")
+
 
 GROUP BY device_id

@@ -5979,3 +5979,2496 @@ ORDER BY hour_bucket DESC
 [0m11:17:55.438796 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2029f417b0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f202422ad70>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f202422a470>]}
 [0m11:17:55.439628 [debug] [MainThread]: Flushing usage events
 [0m11:17:56.718653 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m17:31:27.655958 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f12850e5e40>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1283f44280>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1283f44220>]}
+
+
+============================== 17:31:27.660478 | f4418a59-328b-4c98-8890-4c5f1e6ff3f4 ==============================
+[0m17:31:27.660478 [info ] [MainThread]: Running with dbt=1.11.12
+[0m17:31:27.661962 [debug] [MainThread]: running dbt with arguments {'log_path': '/home/ubuntu/gaung_v3/dbt/logs', 'invocation_command': 'dbt run --select source_iot data_iot_silver --project-dir /home/ubuntu/gaung_v3/dbt', 'static_parser': 'True', 'log_format': 'default', 'use_colors': 'True', 'no_print': 'None', 'profiles_dir': '/home/ubuntu/.dbt', 'use_experimental_parser': 'False', 'log_cache_events': 'False', 'write_json': 'True', 'debug': 'False', 'warn_error': 'None', 'target_path': 'None', 'quiet': 'False', 'printer_width': '80', 'fail_fast': 'False', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'send_anonymous_usage_stats': 'True', 'partial_parse': 'True', 'cache_selected_only': 'False', 'introspect': 'True', 'empty': 'False', 'version_check': 'True', 'indirect_selection': 'eager'}
+[0m17:31:28.773099 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'f4418a59-328b-4c98-8890-4c5f1e6ff3f4', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1283f442b0>]}
+[0m17:31:28.972863 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'f4418a59-328b-4c98-8890-4c5f1e6ff3f4', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1283f46a10>]}
+[0m17:31:28.988957 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m17:31:29.347695 [debug] [MainThread]: checksum: f368f5348cf42803b94ef7fb8257ecf3bf9a9a16dd9c8c51fe5172f2dbeb457f, vars: {}, profile: , target: , version: 1.11.12
+[0m17:31:29.823817 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m17:31:29.824786 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m17:31:29.825444 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m17:31:30.123573 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'f4418a59-328b-4c98-8890-4c5f1e6ff3f4', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f12847d1210>]}
+[0m17:31:30.553091 [debug] [MainThread]: Wrote artifact WritableManifest to /home/ubuntu/gaung_v3/dbt/target/manifest.json
+[0m17:31:30.556348 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/ubuntu/gaung_v3/dbt/target/semantic_manifest.json
+[0m17:31:30.587133 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'f4418a59-328b-4c98-8890-4c5f1e6ff3f4', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f127f414a60>]}
+[0m17:31:30.588256 [info ] [MainThread]: Found 6 models, 4 data tests, 1 source, 485 macros
+[0m17:31:30.594506 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'f4418a59-328b-4c98-8890-4c5f1e6ff3f4', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f127f7899f0>]}
+[0m17:31:30.603192 [info ] [MainThread]: 
+[0m17:31:30.607276 [info ] [MainThread]: Concurrency: 1 threads (target='dev')
+[0m17:31:30.608184 [info ] [MainThread]: 
+[0m17:31:30.609341 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m17:31:30.651415 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_gaung'
+[0m17:31:30.831278 [debug] [ThreadPool]: Using duckdb connection "list_gaung"
+[0m17:31:30.832351 [debug] [ThreadPool]: On list_gaung: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "list_gaung"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"gaung"'
+    
+  
+  
+[0m17:31:30.833106 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m17:31:31.135762 [debug] [ThreadPool]: SQL status: OK in 0.302 seconds
+[0m17:31:31.147246 [debug] [ThreadPool]: On list_gaung: Close
+[0m17:31:31.150569 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_gaung, now create_gaung_main)
+[0m17:31:31.152805 [debug] [ThreadPool]: Creating schema "database: "gaung"
+schema: "main"
+"
+[0m17:31:31.178293 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:31:31.181966 [debug] [ThreadPool]: On create_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "create_gaung_main"} */
+
+    
+        select type from duckdb_databases()
+        where lower(database_name)='gaung'
+        and type='sqlite'
+    
+  
+[0m17:31:31.182784 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m17:31:31.187982 [debug] [ThreadPool]: SQL status: OK in 0.005 seconds
+[0m17:31:31.203228 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:31:31.204075 [debug] [ThreadPool]: On create_gaung_main: BEGIN
+[0m17:31:31.210108 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m17:31:31.210865 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:31:31.211637 [debug] [ThreadPool]: On create_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "create_gaung_main"} */
+
+    
+    
+        create schema if not exists "gaung"."main"
+    
+[0m17:31:31.212714 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m17:31:31.229405 [debug] [ThreadPool]: On create_gaung_main: COMMIT
+[0m17:31:31.230241 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:31:31.234696 [debug] [ThreadPool]: On create_gaung_main: COMMIT
+[0m17:31:31.235692 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m17:31:31.236419 [debug] [ThreadPool]: On create_gaung_main: Close
+[0m17:31:31.252654 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_gaung_main'
+[0m17:31:31.276624 [debug] [ThreadPool]: Using duckdb connection "list_gaung_main"
+[0m17:31:31.277539 [debug] [ThreadPool]: On list_gaung_main: BEGIN
+[0m17:31:31.278257 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m17:31:31.279722 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m17:31:31.280447 [debug] [ThreadPool]: Using duckdb connection "list_gaung_main"
+[0m17:31:31.281220 [debug] [ThreadPool]: On list_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "list_gaung_main"} */
+select
+      'gaung' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'gaung'
+  
+[0m17:31:31.300702 [debug] [ThreadPool]: SQL status: OK in 0.011 seconds
+[0m17:31:31.315166 [debug] [ThreadPool]: On list_gaung_main: ROLLBACK
+[0m17:31:31.330552 [debug] [ThreadPool]: Failed to rollback 'list_gaung_main'
+[0m17:31:31.331329 [debug] [ThreadPool]: On list_gaung_main: Close
+[0m17:31:31.336295 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'f4418a59-328b-4c98-8890-4c5f1e6ff3f4', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f127f6c5090>]}
+[0m17:31:31.337256 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:31:31.337986 [debug] [MainThread]: On master: BEGIN
+[0m17:31:31.338717 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m17:31:31.340068 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m17:31:31.340883 [debug] [MainThread]: On master: COMMIT
+[0m17:31:31.341607 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:31:31.342316 [debug] [MainThread]: On master: COMMIT
+[0m17:31:31.343593 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m17:31:31.344303 [debug] [MainThread]: On master: Close
+[0m17:31:31.379450 [debug] [Thread-1 (]: Began running node model.gaung_silver.source_iot
+[0m17:31:31.380954 [info ] [Thread-1 (]: 1 of 2 START sql view model main.source_iot .................................... [RUN]
+[0m17:31:31.382033 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly list_gaung_main, now model.gaung_silver.source_iot)
+[0m17:31:31.382943 [debug] [Thread-1 (]: Began compiling node model.gaung_silver.source_iot
+[0m17:31:31.410787 [debug] [Thread-1 (]: Writing injected SQL for node "model.gaung_silver.source_iot"
+[0m17:31:31.414625 [debug] [Thread-1 (]: Began executing node model.gaung_silver.source_iot
+[0m17:31:31.518294 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:31.519331 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: BEGIN
+[0m17:31:31.523504 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m17:31:31.525096 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m17:31:31.529599 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:31.530416 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+
+        SET s3_endpoint='localhost:9000';
+        SET s3_access_key_id='gaung';
+        SET s3_secret_access_key='gaung-minio-2026';
+        SET s3_use_ssl=false;
+        SET s3_url_style='path';
+      
+[0m17:31:31.535552 [debug] [Thread-1 (]: SQL status: OK in 0.004 seconds
+[0m17:31:31.576928 [debug] [Thread-1 (]: Writing runtime sql for node "model.gaung_silver.source_iot"
+[0m17:31:31.579443 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:31.580348 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+
+  
+  create view "gaung"."main"."source_iot__dbt_tmp" as (
+    -- dbt/models/bronze/source_iot.sql
+
+
+
+WITH base AS (
+    SELECT
+        device_id,
+        temperature_c,
+        humidity_pct,
+        vibration_g,
+        battery_v,
+        timestamp,
+        status_code,
+        _source_file,
+        _ingested_at
+    FROM "gaung"."main"."bronze_data_iot_6_latest"
+)
+SELECT
+    device_id,
+    TRY_CAST(temperature_c AS DOUBLE) AS temperature_c,
+    TRY_CAST(humidity_pct AS DOUBLE) AS humidity_pct,
+    vibration_g::DOUBLE AS vibration_g,
+    TRY_CAST(battery_v AS DOUBLE) AS battery_v,
+    TRY_CAST(timestamp AS TIMESTAMP) AS timestamp,
+    status_code,
+    _source_file,
+    TRY_CAST(_ingested_at AS TIMESTAMP) AS _ingested_at,
+    ROW_NUMBER() OVER (PARTITION BY device_id ORDER BY timestamp) AS _row_seq,
+    COUNT(*) OVER (PARTITION BY device_id) AS _device_total_rows
+FROM base
+  );
+
+[0m17:31:31.706140 [debug] [Thread-1 (]: SQL status: OK in 0.124 seconds
+[0m17:31:31.768223 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:31.769595 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+alter view "gaung"."main"."source_iot" rename to "source_iot__dbt_backup"
+[0m17:31:31.771587 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:31:31.801958 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:31.803021 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+alter view "gaung"."main"."source_iot__dbt_tmp" rename to "source_iot"
+[0m17:31:31.804573 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m17:31:31.890748 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: COMMIT
+[0m17:31:31.891690 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:31.892446 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: COMMIT
+[0m17:31:31.931991 [debug] [Thread-1 (]: SQL status: OK in 0.033 seconds
+[0m17:31:31.942762 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:31.943529 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+
+      drop view if exists "gaung"."main"."source_iot__dbt_backup" cascade
+    
+[0m17:31:31.957945 [debug] [Thread-1 (]: SQL status: OK in 0.012 seconds
+[0m17:31:31.965207 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: Close
+[0m17:31:31.973623 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'f4418a59-328b-4c98-8890-4c5f1e6ff3f4', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1288f38640>]}
+[0m17:31:31.974858 [info ] [Thread-1 (]: 1 of 2 OK created sql view model main.source_iot ............................... [[32mOK[0m in 0.58s]
+[0m17:31:31.976314 [debug] [Thread-1 (]: Finished running node model.gaung_silver.source_iot
+[0m17:31:31.977688 [debug] [Thread-1 (]: Began running node model.gaung_silver.data_iot_silver
+[0m17:31:31.978573 [info ] [Thread-1 (]: 2 of 2 START sql table model main.data_iot_silver .............................. [RUN]
+[0m17:31:31.979609 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly model.gaung_silver.source_iot, now model.gaung_silver.data_iot_silver)
+[0m17:31:31.980402 [debug] [Thread-1 (]: Began compiling node model.gaung_silver.data_iot_silver
+[0m17:31:31.985572 [debug] [Thread-1 (]: Writing injected SQL for node "model.gaung_silver.data_iot_silver"
+[0m17:31:31.994053 [debug] [Thread-1 (]: Began executing node model.gaung_silver.data_iot_silver
+[0m17:31:32.026227 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:32.026995 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: BEGIN
+[0m17:31:32.027761 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m17:31:32.037650 [debug] [Thread-1 (]: SQL status: OK in 0.010 seconds
+[0m17:31:32.038415 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:32.039148 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+        SET s3_endpoint='localhost:9000';
+        SET s3_access_key_id='gaung';
+        SET s3_secret_access_key='gaung-minio-2026';
+        SET s3_use_ssl=false;
+        SET s3_url_style='path';
+      
+[0m17:31:32.040789 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:31:32.076193 [debug] [Thread-1 (]: Writing runtime sql for node "model.gaung_silver.data_iot_silver"
+[0m17:31:32.077297 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:32.078324 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+  
+    
+    
+
+    create  table
+      "gaung"."main"."data_iot_silver__dbt_tmp"
+  
+    as (
+      -- dbt/models/silver/data_iot_silver.sql
+-- SCD Type 2: Slowly Changing Dimension
+-- Preserves full history — never overwrites, only appends
+-- Includes data quality validation flags
+
+
+
+WITH raw_data AS (
+    SELECT * FROM "gaung"."main"."source_iot"
+),
+
+-- Step 1: Basic cleaning + type casting
+cleaned AS (
+    SELECT
+        device_id,
+        timestamp,
+        temperature_c,
+        humidity_pct,
+        vibration_g,
+        battery_v,
+        status_code,
+        _source_file,
+        _ingested_at,
+        _row_seq,
+
+        -- Quality flag: detect out-of-range values
+        CASE
+            WHEN temperature_c < -50  OR temperature_c > 300 THEN 1
+            ELSE 0
+        END AS _temp_outlier,
+
+        CASE
+            WHEN humidity_pct < 0 OR humidity_pct > 100 THEN 1
+            ELSE 0
+        END AS _humidity_outlier,
+
+        CASE
+            WHEN battery_v < 0 OR battery_v > 10 THEN 1
+            ELSE 0
+        END AS _battery_outlier,
+
+        -- Anomaly score (sum of all outlier flags)
+        (CASE WHEN temperature_c < -50 OR temperature_c > 300 THEN 1 ELSE 0 END +
+         CASE WHEN humidity_pct < 0 OR humidity_pct > 100 THEN 1 ELSE 0 END +
+         CASE WHEN battery_v < 0 OR battery_v > 10 THEN 1 ELSE 0 END
+        ) AS _anomaly_score,
+
+        -- Missing count per row
+        (CASE WHEN temperature_c IS NULL THEN 1 ELSE 0 END +
+         CASE WHEN humidity_pct IS NULL THEN 1 ELSE 0 END +
+         CASE WHEN vibration_g IS NULL THEN 1 ELSE 0 END +
+         CASE WHEN battery_v IS NULL THEN 1 ELSE 0 END
+        ) AS _missing_count
+
+    FROM raw_data
+),
+
+-- Step 2: Impute missing values (forward-fill per device)
+imputed AS (
+    SELECT
+        device_id,
+        timestamp,
+        COALESCE(temperature_c,
+            LAST_VALUE(temperature_c IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS temperature_c,
+
+        COALESCE(humidity_pct,
+            LAST_VALUE(humidity_pct IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS humidity_pct,
+
+        COALESCE(vibration_g,
+            LAST_VALUE(vibration_g IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS vibration_g,
+
+        COALESCE(battery_v,
+            LAST_VALUE(battery_v IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS battery_v,
+
+        status_code,
+        _source_file,
+        _ingested_at,
+        _row_seq,
+        _temp_outlier,
+        _humidity_outlier,
+        _battery_outlier,
+        _anomaly_score,
+        _missing_count
+    FROM cleaned
+)
+
+-- Step 3: Build SCD Type 2 with valid_from / valid_to
+SELECT
+    -- SCD key: unique identifier for each version of a row
+    MD5(device_id || '|' || timestamp || '|' || _source_file) AS _scd_key,
+
+    -- Business keys
+    device_id,
+    timestamp,
+
+    -- Data columns
+    temperature_c,
+    humidity_pct,
+    vibration_g,
+    battery_v,
+    status_code,
+
+    -- SCD Type 2 temporal columns
+    _ingested_at AS _valid_from,
+    NULL::TIMESTAMP AS _valid_to,
+    TRUE AS _is_current,
+
+    -- Quality metadata
+    _temp_outlier,
+    _humidity_outlier,
+    _battery_outlier,
+    _anomaly_score,
+    _missing_count,
+    _source_file,
+    _row_seq
+
+FROM imputed
+    );
+  
+  
+[0m17:31:32.116479 [debug] [Thread-1 (]: SQL status: OK in 0.037 seconds
+[0m17:31:32.139875 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:32.140684 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+    SELECT index_name
+    FROM duckdb_indexes()
+    WHERE schema_name = 'main'
+      AND table_name = 'data_iot_silver'
+  
+[0m17:31:32.142251 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:31:32.149155 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:32.149934 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+    SELECT COUNT(*) as remaining_indexes
+    FROM duckdb_indexes()
+    WHERE schema_name = 'main'
+      AND table_name = 'data_iot_silver'
+  
+[0m17:31:32.151282 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:31:32.162625 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:32.163394 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+alter table "gaung"."main"."data_iot_silver" rename to "data_iot_silver__dbt_backup"
+[0m17:31:32.164533 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m17:31:32.171584 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:32.172317 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+alter table "gaung"."main"."data_iot_silver__dbt_tmp" rename to "data_iot_silver"
+[0m17:31:32.173357 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m17:31:32.184085 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: COMMIT
+[0m17:31:32.184879 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:32.185654 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: COMMIT
+[0m17:31:32.188533 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m17:31:32.197408 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:32.198153 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+      drop table if exists "gaung"."main"."data_iot_silver__dbt_backup" cascade
+    
+[0m17:31:32.200091 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:31:32.204719 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: Close
+[0m17:31:32.205824 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'f4418a59-328b-4c98-8890-4c5f1e6ff3f4', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f127e8e4dc0>]}
+[0m17:31:32.206980 [info ] [Thread-1 (]: 2 of 2 OK created sql table model main.data_iot_silver ......................... [[32mOK[0m in 0.23s]
+[0m17:31:32.208264 [debug] [Thread-1 (]: Finished running node model.gaung_silver.data_iot_silver
+[0m17:31:32.209850 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:31:32.210535 [debug] [MainThread]: On master: BEGIN
+[0m17:31:32.211185 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m17:31:32.212182 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m17:31:32.212840 [debug] [MainThread]: On master: COMMIT
+[0m17:31:32.213707 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:31:32.214347 [debug] [MainThread]: On master: COMMIT
+[0m17:31:32.215175 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m17:31:32.215854 [debug] [MainThread]: On master: Close
+[0m17:31:32.216644 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m17:31:32.217270 [debug] [MainThread]: Connection 'create_gaung_main' was properly closed.
+[0m17:31:32.217885 [debug] [MainThread]: Connection 'model.gaung_silver.data_iot_silver' was properly closed.
+[0m17:31:32.218557 [info ] [MainThread]: 
+[0m17:31:32.219354 [info ] [MainThread]: Finished running 1 table model, 1 view model in 0 hours 0 minutes and 1.61 seconds (1.61s).
+[0m17:31:32.220955 [debug] [MainThread]: Command end result
+[0m17:31:32.277778 [debug] [MainThread]: Wrote artifact WritableManifest to /home/ubuntu/gaung_v3/dbt/target/manifest.json
+[0m17:31:32.280118 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/ubuntu/gaung_v3/dbt/target/semantic_manifest.json
+[0m17:31:32.313591 [debug] [MainThread]: Wrote artifact RunExecutionResult to /home/ubuntu/gaung_v3/dbt/target/run_results.json
+[0m17:31:32.314345 [info ] [MainThread]: 
+[0m17:31:32.315281 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m17:31:32.317442 [info ] [MainThread]: 
+[0m17:31:32.318785 [info ] [MainThread]: Done. PASS=2 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=2
+[0m17:31:32.322316 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": true, "command_wall_clock_time": 4.8490443, "process_in_blocks": "4016", "process_kernel_time": 0.306178, "process_mem_max_rss": "204020", "process_out_blocks": "2608", "process_user_time": 4.187064}
+[0m17:31:32.323209 [debug] [MainThread]: Command `dbt run` succeeded at 17:31:32.323037 after 4.85 seconds
+[0m17:31:32.323940 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f12850e5e40>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1284fa6dd0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f12883d02e0>]}
+[0m17:31:32.330766 [debug] [MainThread]: Flushing usage events
+[0m17:31:35.016325 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m17:31:41.000314 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f22f890d7e0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f22f77642b0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f22f7764250>]}
+
+
+============================== 17:31:41.004505 | d7c1d2d7-d319-4065-9798-71e73f83a902 ==============================
+[0m17:31:41.004505 [info ] [MainThread]: Running with dbt=1.11.12
+[0m17:31:41.005554 [debug] [MainThread]: running dbt with arguments {'version_check': 'True', 'write_json': 'True', 'target_path': 'None', 'introspect': 'True', 'fail_fast': 'False', 'profiles_dir': '/home/ubuntu/.dbt', 'static_parser': 'True', 'log_format': 'default', 'printer_width': '80', 'quiet': 'False', 'cache_selected_only': 'False', 'use_colors': 'True', 'log_path': '/home/ubuntu/gaung_v3/dbt/logs', 'use_experimental_parser': 'False', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'partial_parse': 'True', 'send_anonymous_usage_stats': 'True', 'invocation_command': 'dbt run --select source_iot --project-dir /home/ubuntu/gaung_v3/dbt', 'empty': 'False', 'warn_error': 'None', 'no_print': 'None', 'indirect_selection': 'eager', 'debug': 'False', 'log_cache_events': 'False'}
+[0m17:31:41.425762 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'd7c1d2d7-d319-4065-9798-71e73f83a902', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f22f77642e0>]}
+[0m17:31:41.541205 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'd7c1d2d7-d319-4065-9798-71e73f83a902', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f22fc6a1e40>]}
+[0m17:31:41.543874 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m17:31:41.725751 [debug] [MainThread]: checksum: f368f5348cf42803b94ef7fb8257ecf3bf9a9a16dd9c8c51fe5172f2dbeb457f, vars: {}, profile: , target: , version: 1.11.12
+[0m17:31:41.950749 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m17:31:41.951408 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m17:31:41.951917 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m17:31:42.245338 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'd7c1d2d7-d319-4065-9798-71e73f83a902', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f22f7741a20>]}
+[0m17:31:42.441633 [debug] [MainThread]: Wrote artifact WritableManifest to /home/ubuntu/gaung_v3/dbt/target/manifest.json
+[0m17:31:42.443842 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/ubuntu/gaung_v3/dbt/target/semantic_manifest.json
+[0m17:31:42.453063 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'd7c1d2d7-d319-4065-9798-71e73f83a902', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f22f2c1b160>]}
+[0m17:31:42.453786 [info ] [MainThread]: Found 6 models, 4 data tests, 1 source, 485 macros
+[0m17:31:42.454405 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'd7c1d2d7-d319-4065-9798-71e73f83a902', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f22f2c1b070>]}
+[0m17:31:42.456359 [info ] [MainThread]: 
+[0m17:31:42.456989 [info ] [MainThread]: Concurrency: 1 threads (target='dev')
+[0m17:31:42.457549 [info ] [MainThread]: 
+[0m17:31:42.458301 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m17:31:42.459962 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_gaung'
+[0m17:31:42.507102 [debug] [ThreadPool]: Using duckdb connection "list_gaung"
+[0m17:31:42.507774 [debug] [ThreadPool]: On list_gaung: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "list_gaung"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"gaung"'
+    
+  
+  
+[0m17:31:42.508367 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m17:31:42.670370 [debug] [ThreadPool]: SQL status: OK in 0.162 seconds
+[0m17:31:42.678575 [debug] [ThreadPool]: On list_gaung: Close
+[0m17:31:42.679748 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_gaung, now create_gaung_main)
+[0m17:31:42.680520 [debug] [ThreadPool]: Creating schema "database: "gaung"
+schema: "main"
+"
+[0m17:31:42.691233 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:31:42.691829 [debug] [ThreadPool]: On create_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "create_gaung_main"} */
+
+    
+        select type from duckdb_databases()
+        where lower(database_name)='gaung'
+        and type='sqlite'
+    
+  
+[0m17:31:42.692384 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m17:31:42.693552 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m17:31:42.699326 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:31:42.699896 [debug] [ThreadPool]: On create_gaung_main: BEGIN
+[0m17:31:42.700615 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m17:31:42.701149 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:31:42.701699 [debug] [ThreadPool]: On create_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "create_gaung_main"} */
+
+    
+    
+        create schema if not exists "gaung"."main"
+    
+[0m17:31:42.702495 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m17:31:42.707083 [debug] [ThreadPool]: On create_gaung_main: COMMIT
+[0m17:31:42.707681 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:31:42.708218 [debug] [ThreadPool]: On create_gaung_main: COMMIT
+[0m17:31:42.708954 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m17:31:42.709513 [debug] [ThreadPool]: On create_gaung_main: Close
+[0m17:31:42.719002 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_gaung_main'
+[0m17:31:42.726833 [debug] [ThreadPool]: Using duckdb connection "list_gaung_main"
+[0m17:31:42.727404 [debug] [ThreadPool]: On list_gaung_main: BEGIN
+[0m17:31:42.727927 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m17:31:42.728832 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m17:31:42.729370 [debug] [ThreadPool]: Using duckdb connection "list_gaung_main"
+[0m17:31:42.729937 [debug] [ThreadPool]: On list_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "list_gaung_main"} */
+select
+      'gaung' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'gaung'
+  
+[0m17:31:42.734308 [debug] [ThreadPool]: SQL status: OK in 0.004 seconds
+[0m17:31:42.740195 [debug] [ThreadPool]: On list_gaung_main: ROLLBACK
+[0m17:31:42.741057 [debug] [ThreadPool]: Failed to rollback 'list_gaung_main'
+[0m17:31:42.741627 [debug] [ThreadPool]: On list_gaung_main: Close
+[0m17:31:42.745704 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'd7c1d2d7-d319-4065-9798-71e73f83a902', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f22f2ede9e0>]}
+[0m17:31:42.746485 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:31:42.747029 [debug] [MainThread]: On master: BEGIN
+[0m17:31:42.747577 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m17:31:42.748423 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m17:31:42.749185 [debug] [MainThread]: On master: COMMIT
+[0m17:31:42.749748 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:31:42.750287 [debug] [MainThread]: On master: COMMIT
+[0m17:31:42.751013 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m17:31:42.751581 [debug] [MainThread]: On master: Close
+[0m17:31:42.754167 [debug] [Thread-1 (]: Began running node model.gaung_silver.source_iot
+[0m17:31:42.756018 [info ] [Thread-1 (]: 1 of 1 START sql view model main.source_iot .................................... [RUN]
+[0m17:31:42.756778 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly create_gaung_main, now model.gaung_silver.source_iot)
+[0m17:31:42.757432 [debug] [Thread-1 (]: Began compiling node model.gaung_silver.source_iot
+[0m17:31:42.768903 [debug] [Thread-1 (]: Writing injected SQL for node "model.gaung_silver.source_iot"
+[0m17:31:42.772280 [debug] [Thread-1 (]: Began executing node model.gaung_silver.source_iot
+[0m17:31:42.813504 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:42.814170 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: BEGIN
+[0m17:31:42.814813 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m17:31:42.815786 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:31:42.816436 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:42.817074 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+
+        SET s3_endpoint='localhost:9000';
+        SET s3_access_key_id='gaung';
+        SET s3_secret_access_key='gaung-minio-2026';
+        SET s3_use_ssl=false;
+        SET s3_url_style='path';
+      
+[0m17:31:42.819854 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:31:42.832112 [debug] [Thread-1 (]: Writing runtime sql for node "model.gaung_silver.source_iot"
+[0m17:31:42.832989 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:42.833712 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+
+  
+  create view "gaung"."main"."source_iot__dbt_tmp" as (
+    -- dbt/models/bronze/source_iot.sql
+
+
+
+WITH base AS (
+    SELECT
+        device_id,
+        temperature_c,
+        humidity_pct,
+        vibration_g,
+        battery_v,
+        timestamp,
+        status_code,
+        _source_file,
+        _ingested_at
+    FROM "gaung"."main"."bronze_data_iot_6_latest"
+)
+SELECT
+    device_id,
+    TRY_CAST(temperature_c AS DOUBLE) AS temperature_c,
+    TRY_CAST(humidity_pct AS DOUBLE) AS humidity_pct,
+    vibration_g::DOUBLE AS vibration_g,
+    TRY_CAST(battery_v AS DOUBLE) AS battery_v,
+    TRY_CAST(timestamp AS TIMESTAMP) AS timestamp,
+    status_code,
+    _source_file,
+    TRY_CAST(_ingested_at AS TIMESTAMP) AS _ingested_at,
+    ROW_NUMBER() OVER (PARTITION BY device_id ORDER BY timestamp) AS _row_seq,
+    COUNT(*) OVER (PARTITION BY device_id) AS _device_total_rows
+FROM base
+  );
+
+[0m17:31:42.854799 [debug] [Thread-1 (]: SQL status: OK in 0.020 seconds
+[0m17:31:42.881328 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:42.882570 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+alter view "gaung"."main"."source_iot" rename to "source_iot__dbt_backup"
+[0m17:31:42.884414 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:31:42.895943 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:42.896966 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+alter view "gaung"."main"."source_iot__dbt_tmp" rename to "source_iot"
+[0m17:31:42.898630 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m17:31:42.927974 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: COMMIT
+[0m17:31:42.928810 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:42.929556 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: COMMIT
+[0m17:31:42.932615 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m17:31:42.943185 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:42.943869 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+
+      drop view if exists "gaung"."main"."source_iot__dbt_backup" cascade
+    
+[0m17:31:42.945425 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:31:42.952898 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: Close
+[0m17:31:42.955746 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'd7c1d2d7-d319-4065-9798-71e73f83a902', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f22fc73bbb0>]}
+[0m17:31:42.956951 [info ] [Thread-1 (]: 1 of 1 OK created sql view model main.source_iot ............................... [[32mOK[0m in 0.20s]
+[0m17:31:42.958158 [debug] [Thread-1 (]: Finished running node model.gaung_silver.source_iot
+[0m17:31:42.959828 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:31:42.960478 [debug] [MainThread]: On master: BEGIN
+[0m17:31:42.961146 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m17:31:42.962111 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m17:31:42.962755 [debug] [MainThread]: On master: COMMIT
+[0m17:31:42.963345 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:31:42.963966 [debug] [MainThread]: On master: COMMIT
+[0m17:31:42.964745 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m17:31:42.965392 [debug] [MainThread]: On master: Close
+[0m17:31:42.966187 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m17:31:42.966788 [debug] [MainThread]: Connection 'model.gaung_silver.source_iot' was properly closed.
+[0m17:31:42.967384 [debug] [MainThread]: Connection 'list_gaung_main' was properly closed.
+[0m17:31:42.968033 [info ] [MainThread]: 
+[0m17:31:42.968706 [info ] [MainThread]: Finished running 1 view model in 0 hours 0 minutes and 0.51 seconds (0.51s).
+[0m17:31:42.969859 [debug] [MainThread]: Command end result
+[0m17:31:43.032176 [debug] [MainThread]: Wrote artifact WritableManifest to /home/ubuntu/gaung_v3/dbt/target/manifest.json
+[0m17:31:43.034642 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/ubuntu/gaung_v3/dbt/target/semantic_manifest.json
+[0m17:31:43.045786 [debug] [MainThread]: Wrote artifact RunExecutionResult to /home/ubuntu/gaung_v3/dbt/target/run_results.json
+[0m17:31:43.046414 [info ] [MainThread]: 
+[0m17:31:43.047198 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m17:31:43.047791 [info ] [MainThread]: 
+[0m17:31:43.048448 [info ] [MainThread]: Done. PASS=1 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=1
+[0m17:31:43.049980 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": true, "command_wall_clock_time": 2.1658993, "process_in_blocks": "24", "process_kernel_time": 0.187887, "process_mem_max_rss": "189292", "process_out_blocks": "2392", "process_user_time": 3.742837}
+[0m17:31:43.050773 [debug] [MainThread]: Command `dbt run` succeeded at 17:31:43.050611 after 2.17 seconds
+[0m17:31:43.051488 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f22f890d7e0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f22f7743100>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f22fc9bd7e0>]}
+[0m17:31:43.052191 [debug] [MainThread]: Flushing usage events
+[0m17:31:44.318819 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m17:31:53.936690 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f24f942de10>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f24f826c2b0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f24f826c250>]}
+
+
+============================== 17:31:53.943560 | e86f303c-0eb2-447f-b281-e4cd0467c8b6 ==============================
+[0m17:31:53.943560 [info ] [MainThread]: Running with dbt=1.11.12
+[0m17:31:53.945851 [debug] [MainThread]: running dbt with arguments {'write_json': 'True', 'warn_error': 'None', 'log_cache_events': 'False', 'printer_width': '80', 'profiles_dir': '/home/ubuntu/.dbt', 'version_check': 'True', 'fail_fast': 'False', 'no_print': 'None', 'empty': 'False', 'introspect': 'True', 'debug': 'False', 'send_anonymous_usage_stats': 'True', 'log_path': '/home/ubuntu/gaung_v3/dbt/logs', 'cache_selected_only': 'False', 'use_experimental_parser': 'False', 'partial_parse': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'static_parser': 'True', 'target_path': 'None', 'quiet': 'False', 'invocation_command': 'dbt run --select source_iot data_iot_silver --project-dir /home/ubuntu/gaung_v3/dbt', 'indirect_selection': 'eager', 'use_colors': 'True', 'log_format': 'default'}
+[0m17:31:54.546992 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'e86f303c-0eb2-447f-b281-e4cd0467c8b6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f24fd4d75b0>]}
+[0m17:31:55.025897 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'e86f303c-0eb2-447f-b281-e4cd0467c8b6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f24f826e8f0>]}
+[0m17:31:55.035481 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m17:31:55.201157 [debug] [MainThread]: checksum: f368f5348cf42803b94ef7fb8257ecf3bf9a9a16dd9c8c51fe5172f2dbeb457f, vars: {}, profile: , target: , version: 1.11.12
+[0m17:31:55.430685 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m17:31:55.431509 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m17:31:55.432146 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m17:31:56.388745 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'e86f303c-0eb2-447f-b281-e4cd0467c8b6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f24fd262c80>]}
+[0m17:31:57.274251 [debug] [MainThread]: Wrote artifact WritableManifest to /home/ubuntu/gaung_v3/dbt/target/manifest.json
+[0m17:31:57.277019 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/ubuntu/gaung_v3/dbt/target/semantic_manifest.json
+[0m17:31:57.287321 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'e86f303c-0eb2-447f-b281-e4cd0467c8b6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f24f372c970>]}
+[0m17:31:57.288306 [info ] [MainThread]: Found 6 models, 4 data tests, 1 source, 485 macros
+[0m17:31:57.289401 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'e86f303c-0eb2-447f-b281-e4cd0467c8b6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f24f372c9a0>]}
+[0m17:31:57.291869 [info ] [MainThread]: 
+[0m17:31:57.292786 [info ] [MainThread]: Concurrency: 1 threads (target='dev')
+[0m17:31:57.293645 [info ] [MainThread]: 
+[0m17:31:57.294769 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m17:31:57.309940 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_gaung'
+[0m17:31:57.355067 [debug] [ThreadPool]: Using duckdb connection "list_gaung"
+[0m17:31:57.355927 [debug] [ThreadPool]: On list_gaung: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "list_gaung"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"gaung"'
+    
+  
+  
+[0m17:31:57.356719 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m17:31:57.534397 [debug] [ThreadPool]: SQL status: OK in 0.178 seconds
+[0m17:31:57.544697 [debug] [ThreadPool]: On list_gaung: Close
+[0m17:31:57.545982 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_gaung, now create_gaung_main)
+[0m17:31:57.546986 [debug] [ThreadPool]: Creating schema "database: "gaung"
+schema: "main"
+"
+[0m17:31:57.558684 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:31:57.559458 [debug] [ThreadPool]: On create_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "create_gaung_main"} */
+
+    
+        select type from duckdb_databases()
+        where lower(database_name)='gaung'
+        and type='sqlite'
+    
+  
+[0m17:31:57.560234 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m17:31:57.561865 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m17:31:57.568712 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:31:57.569455 [debug] [ThreadPool]: On create_gaung_main: BEGIN
+[0m17:31:57.570385 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m17:31:57.571101 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:31:57.571887 [debug] [ThreadPool]: On create_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "create_gaung_main"} */
+
+    
+    
+        create schema if not exists "gaung"."main"
+    
+[0m17:31:57.572896 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m17:31:57.578401 [debug] [ThreadPool]: On create_gaung_main: COMMIT
+[0m17:31:57.579181 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:31:57.579951 [debug] [ThreadPool]: On create_gaung_main: COMMIT
+[0m17:31:57.580910 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m17:31:57.581718 [debug] [ThreadPool]: On create_gaung_main: Close
+[0m17:31:57.584474 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_gaung_main'
+[0m17:31:57.600159 [debug] [ThreadPool]: Using duckdb connection "list_gaung_main"
+[0m17:31:57.600955 [debug] [ThreadPool]: On list_gaung_main: BEGIN
+[0m17:31:57.601661 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m17:31:57.602866 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m17:31:57.603633 [debug] [ThreadPool]: Using duckdb connection "list_gaung_main"
+[0m17:31:57.604506 [debug] [ThreadPool]: On list_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "list_gaung_main"} */
+select
+      'gaung' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'gaung'
+  
+[0m17:31:57.609816 [debug] [ThreadPool]: SQL status: OK in 0.005 seconds
+[0m17:31:57.616673 [debug] [ThreadPool]: On list_gaung_main: ROLLBACK
+[0m17:31:57.617716 [debug] [ThreadPool]: Failed to rollback 'list_gaung_main'
+[0m17:31:57.618469 [debug] [ThreadPool]: On list_gaung_main: Close
+[0m17:31:57.623170 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'e86f303c-0eb2-447f-b281-e4cd0467c8b6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f24fd167f40>]}
+[0m17:31:57.624145 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:31:57.624947 [debug] [MainThread]: On master: BEGIN
+[0m17:31:57.625784 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m17:31:57.626861 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m17:31:57.627635 [debug] [MainThread]: On master: COMMIT
+[0m17:31:57.628417 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:31:57.629171 [debug] [MainThread]: On master: COMMIT
+[0m17:31:57.630139 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m17:31:57.630915 [debug] [MainThread]: On master: Close
+[0m17:31:57.633901 [debug] [Thread-1 (]: Began running node model.gaung_silver.source_iot
+[0m17:31:57.634982 [info ] [Thread-1 (]: 1 of 2 START sql view model main.source_iot .................................... [RUN]
+[0m17:31:57.636356 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly create_gaung_main, now model.gaung_silver.source_iot)
+[0m17:31:57.637257 [debug] [Thread-1 (]: Began compiling node model.gaung_silver.source_iot
+[0m17:31:57.653004 [debug] [Thread-1 (]: Writing injected SQL for node "model.gaung_silver.source_iot"
+[0m17:31:57.658503 [debug] [Thread-1 (]: Began executing node model.gaung_silver.source_iot
+[0m17:31:57.699086 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:57.700128 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: BEGIN
+[0m17:31:57.700974 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m17:31:57.702439 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:31:57.703286 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:57.704202 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+
+        SET s3_endpoint='localhost:9000';
+        SET s3_access_key_id='gaung';
+        SET s3_secret_access_key='gaung-minio-2026';
+        SET s3_use_ssl=false;
+        SET s3_url_style='path';
+      
+[0m17:31:57.707649 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m17:31:57.722843 [debug] [Thread-1 (]: Writing runtime sql for node "model.gaung_silver.source_iot"
+[0m17:31:57.724058 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:57.724961 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+
+  
+  create view "gaung"."main"."source_iot__dbt_tmp" as (
+    -- dbt/models/bronze/source_iot.sql
+
+
+
+WITH base AS (
+    SELECT
+        device_id,
+        temperature_c,
+        humidity_pct,
+        vibration_g,
+        battery_v,
+        timestamp,
+        status_code,
+        _source_file,
+        _ingested_at
+    FROM "gaung"."main"."bronze_data_iot_6_latest"
+)
+SELECT
+    device_id,
+    TRY_CAST(temperature_c AS DOUBLE) AS temperature_c,
+    TRY_CAST(humidity_pct AS DOUBLE) AS humidity_pct,
+    vibration_g::DOUBLE AS vibration_g,
+    TRY_CAST(battery_v AS DOUBLE) AS battery_v,
+    TRY_CAST(timestamp AS TIMESTAMP) AS timestamp,
+    status_code,
+    _source_file,
+    TRY_CAST(_ingested_at AS TIMESTAMP) AS _ingested_at,
+    ROW_NUMBER() OVER (PARTITION BY device_id ORDER BY timestamp) AS _row_seq,
+    COUNT(*) OVER (PARTITION BY device_id) AS _device_total_rows
+FROM base
+  );
+
+[0m17:31:57.731575 [debug] [Thread-1 (]: SQL status: OK in 0.006 seconds
+[0m17:31:57.745722 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:57.746628 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+alter view "gaung"."main"."source_iot" rename to "source_iot__dbt_backup"
+[0m17:31:57.747959 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m17:31:57.756088 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:57.756986 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+alter view "gaung"."main"."source_iot__dbt_tmp" rename to "source_iot"
+[0m17:31:57.758269 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m17:31:57.786812 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: COMMIT
+[0m17:31:57.787720 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:57.788564 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: COMMIT
+[0m17:31:57.790960 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m17:31:57.801722 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:31:57.802609 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+
+      drop view if exists "gaung"."main"."source_iot__dbt_backup" cascade
+    
+[0m17:31:57.806323 [debug] [Thread-1 (]: SQL status: OK in 0.003 seconds
+[0m17:31:57.813833 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: Close
+[0m17:31:57.816711 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'e86f303c-0eb2-447f-b281-e4cd0467c8b6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f24f3d6f610>]}
+[0m17:31:57.818020 [info ] [Thread-1 (]: 1 of 2 OK created sql view model main.source_iot ............................... [[32mOK[0m in 0.18s]
+[0m17:31:57.819577 [debug] [Thread-1 (]: Finished running node model.gaung_silver.source_iot
+[0m17:31:57.820978 [debug] [Thread-1 (]: Began running node model.gaung_silver.data_iot_silver
+[0m17:31:57.821976 [info ] [Thread-1 (]: 2 of 2 START sql table model main.data_iot_silver .............................. [RUN]
+[0m17:31:57.822997 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly model.gaung_silver.source_iot, now model.gaung_silver.data_iot_silver)
+[0m17:31:57.823892 [debug] [Thread-1 (]: Began compiling node model.gaung_silver.data_iot_silver
+[0m17:31:57.829625 [debug] [Thread-1 (]: Writing injected SQL for node "model.gaung_silver.data_iot_silver"
+[0m17:31:57.830754 [debug] [Thread-1 (]: Began executing node model.gaung_silver.data_iot_silver
+[0m17:31:57.857188 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:57.858140 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: BEGIN
+[0m17:31:57.859000 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m17:31:57.860205 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:31:57.861078 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:57.861946 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+        SET s3_endpoint='localhost:9000';
+        SET s3_access_key_id='gaung';
+        SET s3_secret_access_key='gaung-minio-2026';
+        SET s3_use_ssl=false;
+        SET s3_url_style='path';
+      
+[0m17:31:57.863664 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:31:57.881487 [debug] [Thread-1 (]: Writing runtime sql for node "model.gaung_silver.data_iot_silver"
+[0m17:31:57.882678 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:57.883873 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+  
+    
+    
+
+    create  table
+      "gaung"."main"."data_iot_silver__dbt_tmp"
+  
+    as (
+      -- dbt/models/silver/data_iot_silver.sql
+-- SCD Type 2: Slowly Changing Dimension
+-- Preserves full history — never overwrites, only appends
+-- Includes data quality validation flags
+
+
+
+WITH raw_data AS (
+    SELECT * FROM "gaung"."main"."source_iot"
+),
+
+-- Step 1: Basic cleaning + type casting
+cleaned AS (
+    SELECT
+        device_id,
+        timestamp,
+        temperature_c,
+        humidity_pct,
+        vibration_g,
+        battery_v,
+        status_code,
+        _source_file,
+        _ingested_at,
+        _row_seq,
+
+        -- Quality flag: detect out-of-range values
+        CASE
+            WHEN temperature_c < -50  OR temperature_c > 300 THEN 1
+            ELSE 0
+        END AS _temp_outlier,
+
+        CASE
+            WHEN humidity_pct < 0 OR humidity_pct > 100 THEN 1
+            ELSE 0
+        END AS _humidity_outlier,
+
+        CASE
+            WHEN battery_v < 0 OR battery_v > 10 THEN 1
+            ELSE 0
+        END AS _battery_outlier,
+
+        -- Anomaly score (sum of all outlier flags)
+        (CASE WHEN temperature_c < -50 OR temperature_c > 300 THEN 1 ELSE 0 END +
+         CASE WHEN humidity_pct < 0 OR humidity_pct > 100 THEN 1 ELSE 0 END +
+         CASE WHEN battery_v < 0 OR battery_v > 10 THEN 1 ELSE 0 END
+        ) AS _anomaly_score,
+
+        -- Missing count per row
+        (CASE WHEN temperature_c IS NULL THEN 1 ELSE 0 END +
+         CASE WHEN humidity_pct IS NULL THEN 1 ELSE 0 END +
+         CASE WHEN vibration_g IS NULL THEN 1 ELSE 0 END +
+         CASE WHEN battery_v IS NULL THEN 1 ELSE 0 END
+        ) AS _missing_count
+
+    FROM raw_data
+),
+
+-- Step 2: Impute missing values (forward-fill per device)
+imputed AS (
+    SELECT
+        device_id,
+        timestamp,
+        COALESCE(temperature_c,
+            LAST_VALUE(temperature_c IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS temperature_c,
+
+        COALESCE(humidity_pct,
+            LAST_VALUE(humidity_pct IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS humidity_pct,
+
+        COALESCE(vibration_g,
+            LAST_VALUE(vibration_g IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS vibration_g,
+
+        COALESCE(battery_v,
+            LAST_VALUE(battery_v IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS battery_v,
+
+        status_code,
+        _source_file,
+        _ingested_at,
+        _row_seq,
+        _temp_outlier,
+        _humidity_outlier,
+        _battery_outlier,
+        _anomaly_score,
+        _missing_count
+    FROM cleaned
+)
+
+-- Step 3: Build SCD Type 2 with valid_from / valid_to
+SELECT
+    -- SCD key: unique identifier for each version of a row
+    MD5(device_id || '|' || timestamp || '|' || _source_file) AS _scd_key,
+
+    -- Business keys
+    device_id,
+    timestamp,
+
+    -- Data columns
+    temperature_c,
+    humidity_pct,
+    vibration_g,
+    battery_v,
+    status_code,
+
+    -- SCD Type 2 temporal columns
+    _ingested_at AS _valid_from,
+    NULL::TIMESTAMP AS _valid_to,
+    TRUE AS _is_current,
+
+    -- Quality metadata
+    _temp_outlier,
+    _humidity_outlier,
+    _battery_outlier,
+    _anomaly_score,
+    _missing_count,
+    _source_file,
+    _row_seq
+
+FROM imputed
+    );
+  
+  
+[0m17:31:57.909498 [debug] [Thread-1 (]: SQL status: OK in 0.024 seconds
+[0m17:31:57.922703 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:57.923581 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+    SELECT index_name
+    FROM duckdb_indexes()
+    WHERE schema_name = 'main'
+      AND table_name = 'data_iot_silver'
+  
+[0m17:31:57.925265 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:31:57.933003 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:57.934118 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+    SELECT COUNT(*) as remaining_indexes
+    FROM duckdb_indexes()
+    WHERE schema_name = 'main'
+      AND table_name = 'data_iot_silver'
+  
+[0m17:31:57.935698 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:31:57.948260 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:57.949137 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+alter table "gaung"."main"."data_iot_silver" rename to "data_iot_silver__dbt_backup"
+[0m17:31:57.950472 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m17:31:57.958599 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:57.959473 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+alter table "gaung"."main"."data_iot_silver__dbt_tmp" rename to "data_iot_silver"
+[0m17:31:57.960702 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m17:31:57.973052 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: COMMIT
+[0m17:31:57.974025 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:57.974877 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: COMMIT
+[0m17:31:57.977299 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m17:31:57.983383 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:31:57.984236 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+      drop table if exists "gaung"."main"."data_iot_silver__dbt_backup" cascade
+    
+[0m17:31:57.986167 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:31:57.991901 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: Close
+[0m17:31:57.993105 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'e86f303c-0eb2-447f-b281-e4cd0467c8b6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f24f000fc10>]}
+[0m17:31:57.994348 [info ] [Thread-1 (]: 2 of 2 OK created sql table model main.data_iot_silver ......................... [[32mOK[0m in 0.17s]
+[0m17:31:57.995881 [debug] [Thread-1 (]: Finished running node model.gaung_silver.data_iot_silver
+[0m17:31:57.997545 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:31:57.998300 [debug] [MainThread]: On master: BEGIN
+[0m17:31:57.999078 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m17:31:58.000159 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m17:31:58.000904 [debug] [MainThread]: On master: COMMIT
+[0m17:31:58.001659 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:31:58.002387 [debug] [MainThread]: On master: COMMIT
+[0m17:31:58.003309 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m17:31:58.004050 [debug] [MainThread]: On master: Close
+[0m17:31:58.004908 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m17:31:58.005687 [debug] [MainThread]: Connection 'model.gaung_silver.data_iot_silver' was properly closed.
+[0m17:31:58.006399 [debug] [MainThread]: Connection 'list_gaung_main' was properly closed.
+[0m17:31:58.007151 [info ] [MainThread]: 
+[0m17:31:58.008069 [info ] [MainThread]: Finished running 1 table model, 1 view model in 0 hours 0 minutes and 0.71 seconds (0.71s).
+[0m17:31:58.009843 [debug] [MainThread]: Command end result
+[0m17:31:58.072744 [debug] [MainThread]: Wrote artifact WritableManifest to /home/ubuntu/gaung_v3/dbt/target/manifest.json
+[0m17:31:58.075440 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/ubuntu/gaung_v3/dbt/target/semantic_manifest.json
+[0m17:31:58.087033 [debug] [MainThread]: Wrote artifact RunExecutionResult to /home/ubuntu/gaung_v3/dbt/target/run_results.json
+[0m17:31:58.087939 [info ] [MainThread]: 
+[0m17:31:58.089092 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m17:31:58.089955 [info ] [MainThread]: 
+[0m17:31:58.090905 [info ] [MainThread]: Done. PASS=2 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=2
+[0m17:31:58.092623 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": true, "command_wall_clock_time": 4.263745, "process_in_blocks": "0", "process_kernel_time": 0.18875, "process_mem_max_rss": "205688", "process_out_blocks": "2512", "process_user_time": 3.984622}
+[0m17:31:58.093758 [debug] [MainThread]: Command `dbt run` succeeded at 17:31:58.093580 after 4.27 seconds
+[0m17:31:58.094593 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f24f942de10>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f24fd4d75b0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f24f9356380>]}
+[0m17:31:58.095419 [debug] [MainThread]: Flushing usage events
+[0m17:31:59.394887 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m17:33:22.554216 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1e49519de0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1e483783a0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1e48378340>]}
+
+
+============================== 17:33:22.558259 | bd9d5bda-d064-4980-bc12-d80685edec5f ==============================
+[0m17:33:22.558259 [info ] [MainThread]: Running with dbt=1.11.12
+[0m17:33:22.559697 [debug] [MainThread]: running dbt with arguments {'no_print': 'None', 'write_json': 'True', 'version_check': 'True', 'quiet': 'False', 'fail_fast': 'False', 'invocation_command': 'dbt run --select source_iot data_iot_silver --project-dir /home/ubuntu/gaung_v3/dbt', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'profiles_dir': '/home/ubuntu/.dbt', 'log_format': 'default', 'introspect': 'True', 'use_colors': 'True', 'partial_parse': 'True', 'debug': 'False', 'indirect_selection': 'eager', 'target_path': 'None', 'send_anonymous_usage_stats': 'True', 'warn_error': 'None', 'printer_width': '80', 'empty': 'False', 'use_experimental_parser': 'False', 'log_cache_events': 'False', 'log_path': '/home/ubuntu/gaung_v3/dbt/logs', 'static_parser': 'True', 'cache_selected_only': 'False'}
+[0m17:33:22.951213 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'bd9d5bda-d064-4980-bc12-d80685edec5f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1e4d5e8be0>]}
+[0m17:33:23.062556 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'bd9d5bda-d064-4980-bc12-d80685edec5f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1e484f4700>]}
+[0m17:33:23.065297 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m17:33:23.223630 [debug] [MainThread]: checksum: f368f5348cf42803b94ef7fb8257ecf3bf9a9a16dd9c8c51fe5172f2dbeb457f, vars: {}, profile: , target: , version: 1.11.12
+[0m17:33:23.459335 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m17:33:23.460193 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m17:33:23.460909 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m17:33:23.606382 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'bd9d5bda-d064-4980-bc12-d80685edec5f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1e48b9aa40>]}
+[0m17:33:23.816420 [debug] [MainThread]: Wrote artifact WritableManifest to /home/ubuntu/gaung_v3/dbt/target/manifest.json
+[0m17:33:23.819080 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/ubuntu/gaung_v3/dbt/target/semantic_manifest.json
+[0m17:33:23.828809 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'bd9d5bda-d064-4980-bc12-d80685edec5f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1e43814b20>]}
+[0m17:33:23.829691 [info ] [MainThread]: Found 6 models, 4 data tests, 1 source, 485 macros
+[0m17:33:23.830833 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'bd9d5bda-d064-4980-bc12-d80685edec5f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1e43817250>]}
+[0m17:33:23.833004 [info ] [MainThread]: 
+[0m17:33:23.833886 [info ] [MainThread]: Concurrency: 1 threads (target='dev')
+[0m17:33:23.834653 [info ] [MainThread]: 
+[0m17:33:23.835687 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m17:33:23.844690 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_gaung'
+[0m17:33:23.890718 [debug] [ThreadPool]: Using duckdb connection "list_gaung"
+[0m17:33:23.891624 [debug] [ThreadPool]: On list_gaung: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "list_gaung"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"gaung"'
+    
+  
+  
+[0m17:33:23.892282 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m17:33:24.065280 [debug] [ThreadPool]: SQL status: OK in 0.173 seconds
+[0m17:33:24.073773 [debug] [ThreadPool]: On list_gaung: Close
+[0m17:33:24.074958 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_gaung, now create_gaung_main)
+[0m17:33:24.076047 [debug] [ThreadPool]: Creating schema "database: "gaung"
+schema: "main"
+"
+[0m17:33:24.086666 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:33:24.087351 [debug] [ThreadPool]: On create_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "create_gaung_main"} */
+
+    
+        select type from duckdb_databases()
+        where lower(database_name)='gaung'
+        and type='sqlite'
+    
+  
+[0m17:33:24.088023 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m17:33:24.089555 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m17:33:24.095709 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:33:24.096382 [debug] [ThreadPool]: On create_gaung_main: BEGIN
+[0m17:33:24.097239 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m17:33:24.097915 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:33:24.098562 [debug] [ThreadPool]: On create_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "create_gaung_main"} */
+
+    
+    
+        create schema if not exists "gaung"."main"
+    
+[0m17:33:24.099499 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m17:33:24.104460 [debug] [ThreadPool]: On create_gaung_main: COMMIT
+[0m17:33:24.105198 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m17:33:24.105898 [debug] [ThreadPool]: On create_gaung_main: COMMIT
+[0m17:33:24.106811 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m17:33:24.107505 [debug] [ThreadPool]: On create_gaung_main: Close
+[0m17:33:24.110329 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_gaung_main'
+[0m17:33:24.119096 [debug] [ThreadPool]: Using duckdb connection "list_gaung_main"
+[0m17:33:24.119795 [debug] [ThreadPool]: On list_gaung_main: BEGIN
+[0m17:33:24.120558 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m17:33:24.121599 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m17:33:24.122242 [debug] [ThreadPool]: Using duckdb connection "list_gaung_main"
+[0m17:33:24.122966 [debug] [ThreadPool]: On list_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "list_gaung_main"} */
+select
+      'gaung' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'gaung'
+  
+[0m17:33:24.128056 [debug] [ThreadPool]: SQL status: OK in 0.004 seconds
+[0m17:33:24.134509 [debug] [ThreadPool]: On list_gaung_main: ROLLBACK
+[0m17:33:24.135614 [debug] [ThreadPool]: Failed to rollback 'list_gaung_main'
+[0m17:33:24.136267 [debug] [ThreadPool]: On list_gaung_main: Close
+[0m17:33:24.141252 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'bd9d5bda-d064-4980-bc12-d80685edec5f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1e4e8c2e30>]}
+[0m17:33:24.142134 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:33:24.142863 [debug] [MainThread]: On master: BEGIN
+[0m17:33:24.143514 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m17:33:24.144565 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m17:33:24.145218 [debug] [MainThread]: On master: COMMIT
+[0m17:33:24.145885 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:33:24.146549 [debug] [MainThread]: On master: COMMIT
+[0m17:33:24.147387 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m17:33:24.148101 [debug] [MainThread]: On master: Close
+[0m17:33:24.150902 [debug] [Thread-1 (]: Began running node model.gaung_silver.source_iot
+[0m17:33:24.153168 [info ] [Thread-1 (]: 1 of 2 START sql view model main.source_iot .................................... [RUN]
+[0m17:33:24.154047 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly create_gaung_main, now model.gaung_silver.source_iot)
+[0m17:33:24.154813 [debug] [Thread-1 (]: Began compiling node model.gaung_silver.source_iot
+[0m17:33:24.167637 [debug] [Thread-1 (]: Writing injected SQL for node "model.gaung_silver.source_iot"
+[0m17:33:24.168877 [debug] [Thread-1 (]: Began executing node model.gaung_silver.source_iot
+[0m17:33:24.219549 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:33:24.220497 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: BEGIN
+[0m17:33:24.221734 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m17:33:24.223470 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m17:33:24.224215 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:33:24.224971 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+
+        SET s3_endpoint='localhost:9000';
+        SET s3_access_key_id='gaung';
+        SET s3_secret_access_key='gaung-minio-2026';
+        SET s3_use_ssl=false;
+        SET s3_url_style='path';
+      
+[0m17:33:24.226651 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:33:24.242442 [debug] [Thread-1 (]: Writing runtime sql for node "model.gaung_silver.source_iot"
+[0m17:33:24.243667 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:33:24.244616 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+
+  
+  create view "gaung"."main"."source_iot__dbt_tmp" as (
+    -- dbt/models/bronze/source_iot.sql
+
+
+
+WITH base AS (
+    SELECT
+        device_id,
+        temperature_c,
+        humidity_pct,
+        vibration_g,
+        battery_v,
+        timestamp,
+        status_code,
+        _source_file,
+        _ingested_at
+    FROM "gaung"."main"."bronze_data_iot_6_latest"
+)
+SELECT
+    device_id,
+    TRY_CAST(temperature_c AS DOUBLE) AS temperature_c,
+    TRY_CAST(humidity_pct AS DOUBLE) AS humidity_pct,
+    vibration_g::DOUBLE AS vibration_g,
+    TRY_CAST(battery_v AS DOUBLE) AS battery_v,
+    TRY_CAST(timestamp AS TIMESTAMP) AS timestamp,
+    status_code,
+    _source_file,
+    TRY_CAST(_ingested_at AS TIMESTAMP) AS _ingested_at,
+    ROW_NUMBER() OVER (PARTITION BY device_id ORDER BY timestamp) AS _row_seq,
+    COUNT(*) OVER (PARTITION BY device_id) AS _device_total_rows
+FROM base
+  );
+
+[0m17:33:24.259403 [debug] [Thread-1 (]: SQL status: OK in 0.014 seconds
+[0m17:33:24.285840 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:33:24.287227 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+alter view "gaung"."main"."source_iot" rename to "source_iot__dbt_backup"
+[0m17:33:24.289520 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:33:24.301922 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:33:24.303216 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+alter view "gaung"."main"."source_iot__dbt_tmp" rename to "source_iot"
+[0m17:33:24.305088 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:33:24.340265 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: COMMIT
+[0m17:33:24.341438 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:33:24.342468 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: COMMIT
+[0m17:33:24.345568 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m17:33:24.356572 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m17:33:24.357571 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+
+      drop view if exists "gaung"."main"."source_iot__dbt_backup" cascade
+    
+[0m17:33:24.359393 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:33:24.366804 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: Close
+[0m17:33:24.369748 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'bd9d5bda-d064-4980-bc12-d80685edec5f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1e43814a60>]}
+[0m17:33:24.371000 [info ] [Thread-1 (]: 1 of 2 OK created sql view model main.source_iot ............................... [[32mOK[0m in 0.21s]
+[0m17:33:24.372450 [debug] [Thread-1 (]: Finished running node model.gaung_silver.source_iot
+[0m17:33:24.373855 [debug] [Thread-1 (]: Began running node model.gaung_silver.data_iot_silver
+[0m17:33:24.374752 [info ] [Thread-1 (]: 2 of 2 START sql table model main.data_iot_silver .............................. [RUN]
+[0m17:33:24.375814 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly model.gaung_silver.source_iot, now model.gaung_silver.data_iot_silver)
+[0m17:33:24.376592 [debug] [Thread-1 (]: Began compiling node model.gaung_silver.data_iot_silver
+[0m17:33:24.383263 [debug] [Thread-1 (]: Writing injected SQL for node "model.gaung_silver.data_iot_silver"
+[0m17:33:24.385122 [debug] [Thread-1 (]: Began executing node model.gaung_silver.data_iot_silver
+[0m17:33:24.418305 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:33:24.419242 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: BEGIN
+[0m17:33:24.420041 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m17:33:24.421429 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:33:24.422267 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:33:24.423084 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+        SET s3_endpoint='localhost:9000';
+        SET s3_access_key_id='gaung';
+        SET s3_secret_access_key='gaung-minio-2026';
+        SET s3_use_ssl=false;
+        SET s3_url_style='path';
+      
+[0m17:33:24.424824 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:33:24.441254 [debug] [Thread-1 (]: Writing runtime sql for node "model.gaung_silver.data_iot_silver"
+[0m17:33:24.442366 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:33:24.444995 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+  
+    
+    
+
+    create  table
+      "gaung"."main"."data_iot_silver__dbt_tmp"
+  
+    as (
+      -- dbt/models/silver/data_iot_silver.sql
+-- SCD Type 2: Slowly Changing Dimension
+-- Preserves full history — never overwrites, only appends
+-- Includes data quality validation flags
+
+
+
+WITH raw_data AS (
+    SELECT * FROM "gaung"."main"."source_iot"
+),
+
+-- Step 1: Basic cleaning + type casting
+cleaned AS (
+    SELECT
+        device_id,
+        timestamp,
+        temperature_c,
+        humidity_pct,
+        vibration_g,
+        battery_v,
+        status_code,
+        _source_file,
+        _ingested_at,
+        _row_seq,
+
+        -- Quality flag: detect out-of-range values
+        CASE
+            WHEN temperature_c < -50  OR temperature_c > 300 THEN 1
+            ELSE 0
+        END AS _temp_outlier,
+
+        CASE
+            WHEN humidity_pct < 0 OR humidity_pct > 100 THEN 1
+            ELSE 0
+        END AS _humidity_outlier,
+
+        CASE
+            WHEN battery_v < 0 OR battery_v > 10 THEN 1
+            ELSE 0
+        END AS _battery_outlier,
+
+        -- Anomaly score (sum of all outlier flags)
+        (CASE WHEN temperature_c < -50 OR temperature_c > 300 THEN 1 ELSE 0 END +
+         CASE WHEN humidity_pct < 0 OR humidity_pct > 100 THEN 1 ELSE 0 END +
+         CASE WHEN battery_v < 0 OR battery_v > 10 THEN 1 ELSE 0 END
+        ) AS _anomaly_score,
+
+        -- Missing count per row
+        (CASE WHEN temperature_c IS NULL THEN 1 ELSE 0 END +
+         CASE WHEN humidity_pct IS NULL THEN 1 ELSE 0 END +
+         CASE WHEN vibration_g IS NULL THEN 1 ELSE 0 END +
+         CASE WHEN battery_v IS NULL THEN 1 ELSE 0 END
+        ) AS _missing_count
+
+    FROM raw_data
+),
+
+-- Step 2: Impute missing values (forward-fill per device)
+imputed AS (
+    SELECT
+        device_id,
+        timestamp,
+        COALESCE(temperature_c,
+            LAST_VALUE(temperature_c IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS temperature_c,
+
+        COALESCE(humidity_pct,
+            LAST_VALUE(humidity_pct IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS humidity_pct,
+
+        COALESCE(vibration_g,
+            LAST_VALUE(vibration_g IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS vibration_g,
+
+        COALESCE(battery_v,
+            LAST_VALUE(battery_v IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS battery_v,
+
+        status_code,
+        _source_file,
+        _ingested_at,
+        _row_seq,
+        _temp_outlier,
+        _humidity_outlier,
+        _battery_outlier,
+        _anomaly_score,
+        _missing_count
+    FROM cleaned
+)
+
+-- Step 3: Build SCD Type 2 with valid_from / valid_to
+SELECT
+    -- SCD key: unique identifier for each version of a row
+    MD5(device_id || '|' || timestamp || '|' || _source_file) AS _scd_key,
+
+    -- Business keys
+    device_id,
+    timestamp,
+
+    -- Data columns
+    temperature_c,
+    humidity_pct,
+    vibration_g,
+    battery_v,
+    status_code,
+
+    -- SCD Type 2 temporal columns
+    _ingested_at AS _valid_from,
+    NULL::TIMESTAMP AS _valid_to,
+    TRUE AS _is_current,
+
+    -- Quality metadata
+    _temp_outlier,
+    _humidity_outlier,
+    _battery_outlier,
+    _anomaly_score,
+    _missing_count,
+    _source_file,
+    _row_seq
+
+FROM imputed
+    );
+  
+  
+[0m17:33:24.469550 [debug] [Thread-1 (]: SQL status: OK in 0.023 seconds
+[0m17:33:24.487645 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:33:24.489041 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+    SELECT index_name
+    FROM duckdb_indexes()
+    WHERE schema_name = 'main'
+      AND table_name = 'data_iot_silver'
+  
+[0m17:33:24.492896 [debug] [Thread-1 (]: SQL status: OK in 0.003 seconds
+[0m17:33:24.516595 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:33:24.517585 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+    SELECT COUNT(*) as remaining_indexes
+    FROM duckdb_indexes()
+    WHERE schema_name = 'main'
+      AND table_name = 'data_iot_silver'
+  
+[0m17:33:24.519535 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:33:24.533843 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:33:24.534868 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+alter table "gaung"."main"."data_iot_silver" rename to "data_iot_silver__dbt_backup"
+[0m17:33:24.536171 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:33:24.579187 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:33:24.580517 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+alter table "gaung"."main"."data_iot_silver__dbt_tmp" rename to "data_iot_silver"
+[0m17:33:24.582363 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:33:24.596559 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: COMMIT
+[0m17:33:24.597421 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:33:24.598228 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: COMMIT
+[0m17:33:24.605969 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m17:33:24.612624 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m17:33:24.613532 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+      drop table if exists "gaung"."main"."data_iot_silver__dbt_backup" cascade
+    
+[0m17:33:24.615675 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m17:33:24.621909 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: Close
+[0m17:33:24.632725 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'bd9d5bda-d064-4980-bc12-d80685edec5f', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1e42ceefb0>]}
+[0m17:33:24.634014 [info ] [Thread-1 (]: 2 of 2 OK created sql table model main.data_iot_silver ......................... [[32mOK[0m in 0.25s]
+[0m17:33:24.635422 [debug] [Thread-1 (]: Finished running node model.gaung_silver.data_iot_silver
+[0m17:33:24.637160 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:33:24.637864 [debug] [MainThread]: On master: BEGIN
+[0m17:33:24.674285 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m17:33:24.680940 [debug] [MainThread]: SQL status: OK in 0.004 seconds
+[0m17:33:24.683185 [debug] [MainThread]: On master: COMMIT
+[0m17:33:24.685311 [debug] [MainThread]: Using duckdb connection "master"
+[0m17:33:24.687193 [debug] [MainThread]: On master: COMMIT
+[0m17:33:24.693058 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m17:33:24.694018 [debug] [MainThread]: On master: Close
+[0m17:33:24.708098 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m17:33:24.708914 [debug] [MainThread]: Connection 'model.gaung_silver.data_iot_silver' was properly closed.
+[0m17:33:24.709763 [debug] [MainThread]: Connection 'list_gaung_main' was properly closed.
+[0m17:33:24.716863 [info ] [MainThread]: 
+[0m17:33:24.717960 [info ] [MainThread]: Finished running 1 table model, 1 view model in 0 hours 0 minutes and 0.88 seconds (0.88s).
+[0m17:33:24.719951 [debug] [MainThread]: Command end result
+[0m17:33:24.838502 [debug] [MainThread]: Wrote artifact WritableManifest to /home/ubuntu/gaung_v3/dbt/target/manifest.json
+[0m17:33:24.841667 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/ubuntu/gaung_v3/dbt/target/semantic_manifest.json
+[0m17:33:24.897479 [debug] [MainThread]: Wrote artifact RunExecutionResult to /home/ubuntu/gaung_v3/dbt/target/run_results.json
+[0m17:33:24.898766 [info ] [MainThread]: 
+[0m17:33:24.900270 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m17:33:24.901283 [info ] [MainThread]: 
+[0m17:33:24.902360 [info ] [MainThread]: Done. PASS=2 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=2
+[0m17:33:24.904329 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": true, "command_wall_clock_time": 2.4497466, "process_in_blocks": "0", "process_kernel_time": 0.191172, "process_mem_max_rss": "207772", "process_out_blocks": "2504", "process_user_time": 3.72488}
+[0m17:33:24.905487 [debug] [MainThread]: Command `dbt run` succeeded at 17:33:24.905245 after 2.45 seconds
+[0m17:33:24.906521 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1e49519de0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1e4c806950>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f1e42c61840>]}
+[0m17:33:24.915606 [debug] [MainThread]: Flushing usage events
+[0m17:33:26.290307 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m20:48:01.044955 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2daa4f5e40>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2da9350280>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2da9350220>]}
+
+
+============================== 20:48:01.049252 | 1395f05e-a58a-4094-8c99-103d87d423b5 ==============================
+[0m20:48:01.049252 [info ] [MainThread]: Running with dbt=1.11.12
+[0m20:48:01.050711 [debug] [MainThread]: running dbt with arguments {'introspect': 'True', 'empty': 'False', 'cache_selected_only': 'False', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'send_anonymous_usage_stats': 'True', 'no_print': 'None', 'indirect_selection': 'eager', 'version_check': 'True', 'target_path': 'None', 'profiles_dir': '/home/ubuntu/.dbt', 'debug': 'False', 'static_parser': 'True', 'partial_parse': 'True', 'use_experimental_parser': 'False', 'write_json': 'True', 'printer_width': '80', 'log_path': '/home/ubuntu/gaung_v3/dbt/logs', 'use_colors': 'True', 'log_cache_events': 'False', 'log_format': 'default', 'quiet': 'False', 'fail_fast': 'False', 'warn_error': 'None', 'invocation_command': 'dbt run --select source_iot data_iot_silver --project-dir /home/ubuntu/gaung_v3/dbt'}
+[0m20:48:01.474809 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '1395f05e-a58a-4094-8c99-103d87d423b5', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2da93502b0>]}
+[0m20:48:01.599863 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '1395f05e-a58a-4094-8c99-103d87d423b5', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2da9352a10>]}
+[0m20:48:01.602675 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m20:48:01.774824 [debug] [MainThread]: checksum: f368f5348cf42803b94ef7fb8257ecf3bf9a9a16dd9c8c51fe5172f2dbeb457f, vars: {}, profile: , target: , version: 1.11.12
+[0m20:48:02.051646 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m20:48:02.052565 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m20:48:02.053287 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m20:48:02.227290 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '1395f05e-a58a-4094-8c99-103d87d423b5', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2dae0b9210>]}
+[0m20:48:02.452606 [debug] [MainThread]: Wrote artifact WritableManifest to /home/ubuntu/gaung_v3/dbt/target/manifest.json
+[0m20:48:02.455578 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/ubuntu/gaung_v3/dbt/target/semantic_manifest.json
+[0m20:48:02.466090 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '1395f05e-a58a-4094-8c99-103d87d423b5', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2da483ca60>]}
+[0m20:48:02.467091 [info ] [MainThread]: Found 6 models, 4 data tests, 1 source, 485 macros
+[0m20:48:02.468206 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '1395f05e-a58a-4094-8c99-103d87d423b5', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2da4bad9f0>]}
+[0m20:48:02.470716 [info ] [MainThread]: 
+[0m20:48:02.471713 [info ] [MainThread]: Concurrency: 1 threads (target='dev')
+[0m20:48:02.472579 [info ] [MainThread]: 
+[0m20:48:02.473709 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m20:48:02.484022 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_gaung'
+[0m20:48:02.530341 [debug] [ThreadPool]: Using duckdb connection "list_gaung"
+[0m20:48:02.531325 [debug] [ThreadPool]: On list_gaung: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "list_gaung"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"gaung"'
+    
+  
+  
+[0m20:48:02.532121 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m20:48:02.716675 [debug] [ThreadPool]: SQL status: OK in 0.184 seconds
+[0m20:48:02.730814 [debug] [ThreadPool]: On list_gaung: Close
+[0m20:48:02.732264 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_gaung, now create_gaung_main)
+[0m20:48:02.733318 [debug] [ThreadPool]: Creating schema "database: "gaung"
+schema: "main"
+"
+[0m20:48:02.744753 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m20:48:02.745519 [debug] [ThreadPool]: On create_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "create_gaung_main"} */
+
+    
+        select type from duckdb_databases()
+        where lower(database_name)='gaung'
+        and type='sqlite'
+    
+  
+[0m20:48:02.746264 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m20:48:02.748211 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m20:48:02.755108 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m20:48:02.755877 [debug] [ThreadPool]: On create_gaung_main: BEGIN
+[0m20:48:02.756992 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m20:48:02.757809 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m20:48:02.758603 [debug] [ThreadPool]: On create_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "create_gaung_main"} */
+
+    
+    
+        create schema if not exists "gaung"."main"
+    
+[0m20:48:02.759729 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m20:48:02.765238 [debug] [ThreadPool]: On create_gaung_main: COMMIT
+[0m20:48:02.766083 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m20:48:02.766839 [debug] [ThreadPool]: On create_gaung_main: COMMIT
+[0m20:48:02.767833 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m20:48:02.768570 [debug] [ThreadPool]: On create_gaung_main: Close
+[0m20:48:02.771500 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_gaung_main'
+[0m20:48:02.782024 [debug] [ThreadPool]: Using duckdb connection "list_gaung_main"
+[0m20:48:02.782826 [debug] [ThreadPool]: On list_gaung_main: BEGIN
+[0m20:48:02.783545 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m20:48:02.784927 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m20:48:02.785768 [debug] [ThreadPool]: Using duckdb connection "list_gaung_main"
+[0m20:48:02.786556 [debug] [ThreadPool]: On list_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "list_gaung_main"} */
+select
+      'gaung' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'gaung'
+  
+[0m20:48:02.791925 [debug] [ThreadPool]: SQL status: OK in 0.005 seconds
+[0m20:48:02.799245 [debug] [ThreadPool]: On list_gaung_main: ROLLBACK
+[0m20:48:02.800292 [debug] [ThreadPool]: Failed to rollback 'list_gaung_main'
+[0m20:48:02.801069 [debug] [ThreadPool]: On list_gaung_main: Close
+[0m20:48:02.806995 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '1395f05e-a58a-4094-8c99-103d87d423b5', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2da4905090>]}
+[0m20:48:02.807958 [debug] [MainThread]: Using duckdb connection "master"
+[0m20:48:02.808782 [debug] [MainThread]: On master: BEGIN
+[0m20:48:02.809513 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m20:48:02.810777 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m20:48:02.811573 [debug] [MainThread]: On master: COMMIT
+[0m20:48:02.812304 [debug] [MainThread]: Using duckdb connection "master"
+[0m20:48:02.813066 [debug] [MainThread]: On master: COMMIT
+[0m20:48:02.814048 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m20:48:02.815057 [debug] [MainThread]: On master: Close
+[0m20:48:02.817808 [debug] [Thread-1 (]: Began running node model.gaung_silver.source_iot
+[0m20:48:02.820537 [info ] [Thread-1 (]: 1 of 2 START sql view model main.source_iot .................................... [RUN]
+[0m20:48:02.821561 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly list_gaung_main, now model.gaung_silver.source_iot)
+[0m20:48:02.822753 [debug] [Thread-1 (]: Began compiling node model.gaung_silver.source_iot
+[0m20:48:02.841572 [debug] [Thread-1 (]: Writing injected SQL for node "model.gaung_silver.source_iot"
+[0m20:48:02.842857 [debug] [Thread-1 (]: Began executing node model.gaung_silver.source_iot
+[0m20:48:02.884099 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m20:48:02.885113 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: BEGIN
+[0m20:48:02.885994 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m20:48:02.887590 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m20:48:02.888540 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m20:48:02.889453 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+
+        SET s3_endpoint='localhost:9000';
+        SET s3_access_key_id='gaung';
+        SET s3_secret_access_key='gaung-minio-2026';
+        SET s3_use_ssl=false;
+        SET s3_url_style='path';
+      
+[0m20:48:02.891391 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m20:48:02.907572 [debug] [Thread-1 (]: Writing runtime sql for node "model.gaung_silver.source_iot"
+[0m20:48:02.909108 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m20:48:02.910033 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+
+  
+  create view "gaung"."main"."source_iot__dbt_tmp" as (
+    -- dbt/models/bronze/source_iot.sql
+
+
+
+WITH base AS (
+    SELECT
+        device_id,
+        temperature_c,
+        humidity_pct,
+        vibration_g,
+        battery_v,
+        timestamp,
+        status_code,
+        _source_file,
+        _ingested_at
+    FROM "gaung"."main"."bronze_data_iot_6_latest"
+)
+SELECT
+    device_id,
+    TRY_CAST(temperature_c AS DOUBLE) AS temperature_c,
+    TRY_CAST(humidity_pct AS DOUBLE) AS humidity_pct,
+    vibration_g::DOUBLE AS vibration_g,
+    TRY_CAST(battery_v AS DOUBLE) AS battery_v,
+    TRY_CAST(timestamp AS TIMESTAMP) AS timestamp,
+    status_code,
+    _source_file,
+    TRY_CAST(_ingested_at AS TIMESTAMP) AS _ingested_at,
+    ROW_NUMBER() OVER (PARTITION BY device_id ORDER BY timestamp) AS _row_seq,
+    COUNT(*) OVER (PARTITION BY device_id) AS _device_total_rows
+FROM base
+  );
+
+[0m20:48:02.923212 [debug] [Thread-1 (]: SQL status: OK in 0.012 seconds
+[0m20:48:02.957803 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m20:48:02.959197 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+alter view "gaung"."main"."source_iot" rename to "source_iot__dbt_backup"
+[0m20:48:02.961290 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m20:48:02.974019 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m20:48:02.975309 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+alter view "gaung"."main"."source_iot__dbt_tmp" rename to "source_iot"
+[0m20:48:02.978543 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m20:48:03.020185 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: COMMIT
+[0m20:48:03.021260 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m20:48:03.022278 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: COMMIT
+[0m20:48:03.025249 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m20:48:03.037861 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.source_iot"
+[0m20:48:03.038868 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.source_iot"} */
+
+      drop view if exists "gaung"."main"."source_iot__dbt_backup" cascade
+    
+[0m20:48:03.040915 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m20:48:03.049301 [debug] [Thread-1 (]: On model.gaung_silver.source_iot: Close
+[0m20:48:03.052722 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '1395f05e-a58a-4094-8c99-103d87d423b5', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2dafba3ee0>]}
+[0m20:48:03.054161 [info ] [Thread-1 (]: 1 of 2 OK created sql view model main.source_iot ............................... [[32mOK[0m in 0.23s]
+[0m20:48:03.055893 [debug] [Thread-1 (]: Finished running node model.gaung_silver.source_iot
+[0m20:48:03.057431 [debug] [Thread-1 (]: Began running node model.gaung_silver.data_iot_silver
+[0m20:48:03.058526 [info ] [Thread-1 (]: 2 of 2 START sql table model main.data_iot_silver .............................. [RUN]
+[0m20:48:03.059685 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly model.gaung_silver.source_iot, now model.gaung_silver.data_iot_silver)
+[0m20:48:03.062280 [debug] [Thread-1 (]: Began compiling node model.gaung_silver.data_iot_silver
+[0m20:48:03.068261 [debug] [Thread-1 (]: Writing injected SQL for node "model.gaung_silver.data_iot_silver"
+[0m20:48:03.069495 [debug] [Thread-1 (]: Began executing node model.gaung_silver.data_iot_silver
+[0m20:48:03.096826 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m20:48:03.097693 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: BEGIN
+[0m20:48:03.098520 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m20:48:03.099713 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m20:48:03.100598 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m20:48:03.101453 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+        SET s3_endpoint='localhost:9000';
+        SET s3_access_key_id='gaung';
+        SET s3_secret_access_key='gaung-minio-2026';
+        SET s3_use_ssl=false;
+        SET s3_url_style='path';
+      
+[0m20:48:03.103214 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m20:48:03.122359 [debug] [Thread-1 (]: Writing runtime sql for node "model.gaung_silver.data_iot_silver"
+[0m20:48:03.123522 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m20:48:03.124674 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+  
+    
+    
+
+    create  table
+      "gaung"."main"."data_iot_silver__dbt_tmp"
+  
+    as (
+      -- dbt/models/silver/data_iot_silver.sql
+-- SCD Type 2: Slowly Changing Dimension
+-- Preserves full history — never overwrites, only appends
+-- Includes data quality validation flags
+
+
+
+WITH raw_data AS (
+    SELECT * FROM "gaung"."main"."source_iot"
+),
+
+-- Step 1: Basic cleaning + type casting
+cleaned AS (
+    SELECT
+        device_id,
+        timestamp,
+        temperature_c,
+        humidity_pct,
+        vibration_g,
+        battery_v,
+        status_code,
+        _source_file,
+        _ingested_at,
+        _row_seq,
+
+        -- Quality flag: detect out-of-range values
+        CASE
+            WHEN temperature_c < -50  OR temperature_c > 300 THEN 1
+            ELSE 0
+        END AS _temp_outlier,
+
+        CASE
+            WHEN humidity_pct < 0 OR humidity_pct > 100 THEN 1
+            ELSE 0
+        END AS _humidity_outlier,
+
+        CASE
+            WHEN battery_v < 0 OR battery_v > 10 THEN 1
+            ELSE 0
+        END AS _battery_outlier,
+
+        -- Anomaly score (sum of all outlier flags)
+        (CASE WHEN temperature_c < -50 OR temperature_c > 300 THEN 1 ELSE 0 END +
+         CASE WHEN humidity_pct < 0 OR humidity_pct > 100 THEN 1 ELSE 0 END +
+         CASE WHEN battery_v < 0 OR battery_v > 10 THEN 1 ELSE 0 END
+        ) AS _anomaly_score,
+
+        -- Missing count per row
+        (CASE WHEN temperature_c IS NULL THEN 1 ELSE 0 END +
+         CASE WHEN humidity_pct IS NULL THEN 1 ELSE 0 END +
+         CASE WHEN vibration_g IS NULL THEN 1 ELSE 0 END +
+         CASE WHEN battery_v IS NULL THEN 1 ELSE 0 END
+        ) AS _missing_count
+
+    FROM raw_data
+),
+
+-- Step 2: Impute missing values (forward-fill per device)
+imputed AS (
+    SELECT
+        device_id,
+        timestamp,
+        COALESCE(temperature_c,
+            LAST_VALUE(temperature_c IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS temperature_c,
+
+        COALESCE(humidity_pct,
+            LAST_VALUE(humidity_pct IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS humidity_pct,
+
+        COALESCE(vibration_g,
+            LAST_VALUE(vibration_g IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS vibration_g,
+
+        COALESCE(battery_v,
+            LAST_VALUE(battery_v IGNORE NULLS) OVER (
+                PARTITION BY device_id ORDER BY timestamp
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            )
+        ) AS battery_v,
+
+        status_code,
+        _source_file,
+        _ingested_at,
+        _row_seq,
+        _temp_outlier,
+        _humidity_outlier,
+        _battery_outlier,
+        _anomaly_score,
+        _missing_count
+    FROM cleaned
+)
+
+-- Step 3: Build SCD Type 2 with valid_from / valid_to
+SELECT
+    -- SCD key: unique identifier for each version of a row
+    MD5(device_id || '|' || timestamp || '|' || _source_file) AS _scd_key,
+
+    -- Business keys
+    device_id,
+    timestamp,
+
+    -- Data columns
+    temperature_c,
+    humidity_pct,
+    vibration_g,
+    battery_v,
+    status_code,
+
+    -- SCD Type 2 temporal columns
+    _ingested_at AS _valid_from,
+    NULL::TIMESTAMP AS _valid_to,
+    TRUE AS _is_current,
+
+    -- Quality metadata
+    _temp_outlier,
+    _humidity_outlier,
+    _battery_outlier,
+    _anomaly_score,
+    _missing_count,
+    _source_file,
+    _row_seq
+
+FROM imputed
+    );
+  
+  
+[0m20:48:03.152613 [debug] [Thread-1 (]: SQL status: OK in 0.027 seconds
+[0m20:48:03.165535 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m20:48:03.166429 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+    SELECT index_name
+    FROM duckdb_indexes()
+    WHERE schema_name = 'main'
+      AND table_name = 'data_iot_silver'
+  
+[0m20:48:03.167997 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m20:48:03.175786 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m20:48:03.176688 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+    SELECT COUNT(*) as remaining_indexes
+    FROM duckdb_indexes()
+    WHERE schema_name = 'main'
+      AND table_name = 'data_iot_silver'
+  
+[0m20:48:03.178208 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m20:48:03.190651 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m20:48:03.191540 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+alter table "gaung"."main"."data_iot_silver" rename to "data_iot_silver__dbt_backup"
+[0m20:48:03.192862 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m20:48:03.200865 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m20:48:03.201721 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+alter table "gaung"."main"."data_iot_silver__dbt_tmp" rename to "data_iot_silver"
+[0m20:48:03.202933 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m20:48:03.214989 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: COMMIT
+[0m20:48:03.215867 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m20:48:03.216712 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: COMMIT
+[0m20:48:03.219888 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m20:48:03.225846 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.data_iot_silver"
+[0m20:48:03.226713 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.data_iot_silver"} */
+
+      drop table if exists "gaung"."main"."data_iot_silver__dbt_backup" cascade
+    
+[0m20:48:03.228773 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m20:48:03.234017 [debug] [Thread-1 (]: On model.gaung_silver.data_iot_silver: Close
+[0m20:48:03.235269 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '1395f05e-a58a-4094-8c99-103d87d423b5', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2da3b08ca0>]}
+[0m20:48:03.236548 [info ] [Thread-1 (]: 2 of 2 OK created sql table model main.data_iot_silver ......................... [[32mOK[0m in 0.18s]
+[0m20:48:03.238217 [debug] [Thread-1 (]: Finished running node model.gaung_silver.data_iot_silver
+[0m20:48:03.239979 [debug] [MainThread]: Using duckdb connection "master"
+[0m20:48:03.240784 [debug] [MainThread]: On master: BEGIN
+[0m20:48:03.241537 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m20:48:03.242649 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m20:48:03.243410 [debug] [MainThread]: On master: COMMIT
+[0m20:48:03.244155 [debug] [MainThread]: Using duckdb connection "master"
+[0m20:48:03.244906 [debug] [MainThread]: On master: COMMIT
+[0m20:48:03.245854 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m20:48:03.246762 [debug] [MainThread]: On master: Close
+[0m20:48:03.247664 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m20:48:03.248394 [debug] [MainThread]: Connection 'create_gaung_main' was properly closed.
+[0m20:48:03.249102 [debug] [MainThread]: Connection 'model.gaung_silver.data_iot_silver' was properly closed.
+[0m20:48:03.249885 [info ] [MainThread]: 
+[0m20:48:03.250832 [info ] [MainThread]: Finished running 1 table model, 1 view model in 0 hours 0 minutes and 0.78 seconds (0.78s).
+[0m20:48:03.252634 [debug] [MainThread]: Command end result
+[0m20:48:03.308919 [debug] [MainThread]: Wrote artifact WritableManifest to /home/ubuntu/gaung_v3/dbt/target/manifest.json
+[0m20:48:03.311529 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/ubuntu/gaung_v3/dbt/target/semantic_manifest.json
+[0m20:48:03.322816 [debug] [MainThread]: Wrote artifact RunExecutionResult to /home/ubuntu/gaung_v3/dbt/target/run_results.json
+[0m20:48:03.323565 [info ] [MainThread]: 
+[0m20:48:03.324583 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m20:48:03.325455 [info ] [MainThread]: 
+[0m20:48:03.326408 [info ] [MainThread]: Done. PASS=2 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=2
+[0m20:48:03.328110 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": true, "command_wall_clock_time": 2.4114895, "process_in_blocks": "0", "process_kernel_time": 0.192145, "process_mem_max_rss": "203220", "process_out_blocks": "2504", "process_user_time": 4.038041}
+[0m20:48:03.329157 [debug] [MainThread]: Command `dbt run` succeeded at 20:48:03.328978 after 2.41 seconds
+[0m20:48:03.329998 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2daa4f5e40>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2da948e650>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7f2da56db610>]}
+[0m20:48:03.330854 [debug] [MainThread]: Flushing usage events
+[0m20:48:04.486834 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m20:48:07.334455 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7face9e09ed0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7face8ccc280>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7face8ccc220>]}
+
+
+============================== 20:48:07.341083 | 202dad8b-ef42-4cae-833b-42c767c2875b ==============================
+[0m20:48:07.341083 [info ] [MainThread]: Running with dbt=1.11.12
+[0m20:48:07.343306 [debug] [MainThread]: running dbt with arguments {'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'cache_selected_only': 'False', 'no_print': 'None', 'debug': 'False', 'write_json': 'True', 'indirect_selection': 'eager', 'printer_width': '80', 'warn_error': 'None', 'invocation_command': 'dbt run --select iot_device_summary iot_device_quality_rank iot_dashboard_view --project-dir /home/ubuntu/gaung_v3/dbt', 'quiet': 'False', 'introspect': 'True', 'fail_fast': 'False', 'use_colors': 'True', 'log_cache_events': 'False', 'send_anonymous_usage_stats': 'True', 'empty': 'False', 'version_check': 'True', 'log_path': '/home/ubuntu/gaung_v3/dbt/logs', 'target_path': 'None', 'profiles_dir': '/home/ubuntu/.dbt', 'partial_parse': 'True', 'log_format': 'default', 'use_experimental_parser': 'False', 'static_parser': 'True'}
+[0m20:48:07.730991 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '202dad8b-ef42-4cae-833b-42c767c2875b', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7face8ccc2b0>]}
+[0m20:48:07.835808 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '202dad8b-ef42-4cae-833b-42c767c2875b', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7faced9c9450>]}
+[0m20:48:07.842909 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m20:48:07.985979 [debug] [MainThread]: checksum: f368f5348cf42803b94ef7fb8257ecf3bf9a9a16dd9c8c51fe5172f2dbeb457f, vars: {}, profile: , target: , version: 1.11.12
+[0m20:48:08.227916 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m20:48:08.228778 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m20:48:08.229433 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m20:48:08.374211 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '202dad8b-ef42-4cae-833b-42c767c2875b', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7face8d59270>]}
+[0m20:48:08.643963 [debug] [MainThread]: Wrote artifact WritableManifest to /home/ubuntu/gaung_v3/dbt/target/manifest.json
+[0m20:48:08.646672 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/ubuntu/gaung_v3/dbt/target/semantic_manifest.json
+[0m20:48:08.656986 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '202dad8b-ef42-4cae-833b-42c767c2875b', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7face4230f40>]}
+[0m20:48:08.657935 [info ] [MainThread]: Found 6 models, 4 data tests, 1 source, 485 macros
+[0m20:48:08.659035 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '202dad8b-ef42-4cae-833b-42c767c2875b', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7face4230700>]}
+[0m20:48:08.661522 [info ] [MainThread]: 
+[0m20:48:08.662351 [info ] [MainThread]: Concurrency: 1 threads (target='dev')
+[0m20:48:08.663151 [info ] [MainThread]: 
+[0m20:48:08.664193 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m20:48:08.673342 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_gaung'
+[0m20:48:08.714832 [debug] [ThreadPool]: Using duckdb connection "list_gaung"
+[0m20:48:08.715579 [debug] [ThreadPool]: On list_gaung: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "list_gaung"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"gaung"'
+    
+  
+  
+[0m20:48:08.716238 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m20:48:08.886386 [debug] [ThreadPool]: SQL status: OK in 0.170 seconds
+[0m20:48:08.895641 [debug] [ThreadPool]: On list_gaung: Close
+[0m20:48:08.897018 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_gaung, now create_gaung_main)
+[0m20:48:08.898051 [debug] [ThreadPool]: Creating schema "database: "gaung"
+schema: "main"
+"
+[0m20:48:08.910473 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m20:48:08.911239 [debug] [ThreadPool]: On create_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "create_gaung_main"} */
+
+    
+        select type from duckdb_databases()
+        where lower(database_name)='gaung'
+        and type='sqlite'
+    
+  
+[0m20:48:08.911986 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m20:48:08.913433 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m20:48:08.920057 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m20:48:08.920814 [debug] [ThreadPool]: On create_gaung_main: BEGIN
+[0m20:48:08.921747 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m20:48:08.922488 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m20:48:08.923214 [debug] [ThreadPool]: On create_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "create_gaung_main"} */
+
+    
+    
+        create schema if not exists "gaung"."main"
+    
+[0m20:48:08.924224 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m20:48:08.929651 [debug] [ThreadPool]: On create_gaung_main: COMMIT
+[0m20:48:08.930429 [debug] [ThreadPool]: Using duckdb connection "create_gaung_main"
+[0m20:48:08.931207 [debug] [ThreadPool]: On create_gaung_main: COMMIT
+[0m20:48:08.932160 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m20:48:08.932921 [debug] [ThreadPool]: On create_gaung_main: Close
+[0m20:48:08.935818 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_gaung_main'
+[0m20:48:08.945818 [debug] [ThreadPool]: Using duckdb connection "list_gaung_main"
+[0m20:48:08.946592 [debug] [ThreadPool]: On list_gaung_main: BEGIN
+[0m20:48:08.947313 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m20:48:08.948543 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m20:48:08.949288 [debug] [ThreadPool]: Using duckdb connection "list_gaung_main"
+[0m20:48:08.950059 [debug] [ThreadPool]: On list_gaung_main: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "connection_name": "list_gaung_main"} */
+select
+      'gaung' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'gaung'
+  
+[0m20:48:08.955318 [debug] [ThreadPool]: SQL status: OK in 0.004 seconds
+[0m20:48:08.962240 [debug] [ThreadPool]: On list_gaung_main: ROLLBACK
+[0m20:48:08.963295 [debug] [ThreadPool]: Failed to rollback 'list_gaung_main'
+[0m20:48:08.964042 [debug] [ThreadPool]: On list_gaung_main: Close
+[0m20:48:08.969877 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '202dad8b-ef42-4cae-833b-42c767c2875b', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7face4437c70>]}
+[0m20:48:08.970897 [debug] [MainThread]: Using duckdb connection "master"
+[0m20:48:08.971664 [debug] [MainThread]: On master: BEGIN
+[0m20:48:08.972400 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m20:48:08.973513 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m20:48:08.974259 [debug] [MainThread]: On master: COMMIT
+[0m20:48:08.975012 [debug] [MainThread]: Using duckdb connection "master"
+[0m20:48:08.975770 [debug] [MainThread]: On master: COMMIT
+[0m20:48:08.976719 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m20:48:08.977756 [debug] [MainThread]: On master: Close
+[0m20:48:08.982317 [debug] [Thread-1 (]: Began running node model.gaung_silver.iot_dashboard_view
+[0m20:48:08.983448 [info ] [Thread-1 (]: 1 of 3 START sql view model main.iot_dashboard_view ............................ [RUN]
+[0m20:48:08.984426 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly list_gaung_main, now model.gaung_silver.iot_dashboard_view)
+[0m20:48:08.985274 [debug] [Thread-1 (]: Began compiling node model.gaung_silver.iot_dashboard_view
+[0m20:48:09.000801 [debug] [Thread-1 (]: Writing injected SQL for node "model.gaung_silver.iot_dashboard_view"
+[0m20:48:09.001999 [debug] [Thread-1 (]: Began executing node model.gaung_silver.iot_dashboard_view
+[0m20:48:09.053861 [debug] [Thread-1 (]: Writing runtime sql for node "model.gaung_silver.iot_dashboard_view"
+[0m20:48:09.055290 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_dashboard_view"
+[0m20:48:09.056181 [debug] [Thread-1 (]: On model.gaung_silver.iot_dashboard_view: BEGIN
+[0m20:48:09.057055 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m20:48:09.058623 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m20:48:09.059491 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_dashboard_view"
+[0m20:48:09.060440 [debug] [Thread-1 (]: On model.gaung_silver.iot_dashboard_view: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_dashboard_view"} */
+
+  
+  create view "gaung"."main"."iot_dashboard_view__dbt_tmp" as (
+    -- dbt/models/gold/iot_dashboard_view.sql
+-- Gold: Materialized View for Dashboard (pre-computed, instant queries)
+-- This is what the Gaung UI dashboard queries instead of live aggregation
+
+
+
+-- Global stats
+WITH global_stats AS (
+    SELECT
+        COUNT(DISTINCT device_id) AS total_devices,
+        COUNT(*) AS total_readings,
+        ROUND(AVG(temperature_c), 2) AS overall_avg_temp,
+        ROUND(AVG(humidity_pct), 2) AS overall_avg_humidity,
+        SUM(CASE WHEN _anomaly_score > 0 THEN 1 ELSE 0 END) AS anomalous_readings,
+        SUM(_missing_count) AS total_missing_values
+    FROM "gaung"."main"."data_iot_silver"
+    WHERE _is_current = TRUE
+),
+
+-- Top anomaly devices
+top_anomalies AS (
+    SELECT
+        device_id,
+        COUNT(*) AS readings,
+        SUM(_anomaly_score) AS anomaly_count,
+        ROUND(AVG(temperature_c), 1) AS avg_temp
+    FROM "gaung"."main"."data_iot_silver"
+    WHERE _is_current = TRUE
+    GROUP BY device_id
+    HAVING SUM(_anomaly_score) > 0
+    ORDER BY anomaly_count DESC
+    LIMIT 5
+),
+
+-- Battery status
+battery_status AS (
+    SELECT
+        device_id,
+        ROUND(MIN(battery_v), 2) AS min_battery,
+        ROUND(MAX(battery_v), 2) AS max_battery,
+        ROUND(AVG(battery_v), 2) AS avg_battery
+    FROM "gaung"."main"."data_iot_silver"
+    WHERE _is_current = TRUE AND battery_v IS NOT NULL
+    GROUP BY device_id
+),
+
+-- Recent readings (last 10)
+recent AS (
+    SELECT device_id, temperature_c, humidity_pct, timestamp
+    FROM "gaung"."main"."data_iot_silver"
+    WHERE _is_current = TRUE
+    ORDER BY timestamp DESC
+    LIMIT 10
+)
+
+-- Combine into dashboard response
+SELECT
+    gs.*,
+    (SELECT COUNT(*) FROM top_anomalies) AS devices_with_anomalies,
+    (SELECT COUNT(*) FROM battery_status WHERE min_battery < 3.5) AS low_battery_devices,
+    (SELECT COUNT(*) FROM battery_status WHERE max_battery > 5) AS overvoltage_devices
+FROM global_stats gs
+  );
+
+[0m20:48:09.063721 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m20:48:09.083555 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_dashboard_view"
+[0m20:48:09.084508 [debug] [Thread-1 (]: On model.gaung_silver.iot_dashboard_view: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_dashboard_view"} */
+alter view "gaung"."main"."iot_dashboard_view" rename to "iot_dashboard_view__dbt_backup"
+[0m20:48:09.085949 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m20:48:09.094500 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_dashboard_view"
+[0m20:48:09.095350 [debug] [Thread-1 (]: On model.gaung_silver.iot_dashboard_view: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_dashboard_view"} */
+alter view "gaung"."main"."iot_dashboard_view__dbt_tmp" rename to "iot_dashboard_view"
+[0m20:48:09.096598 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m20:48:09.122728 [debug] [Thread-1 (]: On model.gaung_silver.iot_dashboard_view: COMMIT
+[0m20:48:09.123625 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_dashboard_view"
+[0m20:48:09.124480 [debug] [Thread-1 (]: On model.gaung_silver.iot_dashboard_view: COMMIT
+[0m20:48:09.127901 [debug] [Thread-1 (]: SQL status: OK in 0.003 seconds
+[0m20:48:09.138593 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_dashboard_view"
+[0m20:48:09.139506 [debug] [Thread-1 (]: On model.gaung_silver.iot_dashboard_view: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_dashboard_view"} */
+
+      drop view if exists "gaung"."main"."iot_dashboard_view__dbt_backup" cascade
+    
+[0m20:48:09.141173 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m20:48:09.148583 [debug] [Thread-1 (]: On model.gaung_silver.iot_dashboard_view: Close
+[0m20:48:09.157182 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '202dad8b-ef42-4cae-833b-42c767c2875b', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7facedb87f10>]}
+[0m20:48:09.158500 [info ] [Thread-1 (]: 1 of 3 OK created sql view model main.iot_dashboard_view ....................... [[32mOK[0m in 0.17s]
+[0m20:48:09.160139 [debug] [Thread-1 (]: Finished running node model.gaung_silver.iot_dashboard_view
+[0m20:48:09.161341 [debug] [Thread-1 (]: Began running node model.gaung_silver.iot_device_quality_rank
+[0m20:48:09.169609 [info ] [Thread-1 (]: 2 of 3 START sql incremental model main.iot_device_quality_rank ................ [RUN]
+[0m20:48:09.170762 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly model.gaung_silver.iot_dashboard_view, now model.gaung_silver.iot_device_quality_rank)
+[0m20:48:09.171786 [debug] [Thread-1 (]: Began compiling node model.gaung_silver.iot_device_quality_rank
+[0m20:48:09.187858 [debug] [Thread-1 (]: Writing injected SQL for node "model.gaung_silver.iot_device_quality_rank"
+[0m20:48:09.189084 [debug] [Thread-1 (]: Began executing node model.gaung_silver.iot_device_quality_rank
+[0m20:48:09.262630 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_quality_rank"
+[0m20:48:09.263863 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_quality_rank: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_device_quality_rank"} */
+
+    
+  
+    
+    
+
+    create temporary table
+      "iot_device_quality_rank__dbt_tmp20260715204809243191"
+  
+    as (
+      -- dbt/models/gold/iot_device_quality_rank.sql
+-- Gold: Device Quality Ranking with DQI score
+
+
+
+SELECT
+    device_id,
+    COUNT(*) AS total_readings,
+    ROUND(AVG(temperature_c), 2) AS avg_temperature,
+    ROUND(AVG(humidity_pct), 2) AS avg_humidity,
+    SUM(_missing_count) AS total_missing,
+    SUM(_anomaly_score) AS total_anomalies,
+
+    -- Data Quality Index (0–100)
+    ROUND(
+        100
+        - (SUM(_missing_count) * 1.0 / COUNT(*) * 40)  -- 40% weight: completeness
+        - (SUM(_anomaly_score) * 1.0 / COUNT(*) * 50)  -- 50% weight: validity
+        - (CASE WHEN COUNT(DISTINCT timestamp) < COUNT(*) THEN 10 ELSE 0 END)  -- 10% weight: uniqueness
+    , 1) AS dqi_score,
+
+    -- Quality tier
+    CASE
+        WHEN ROUND(100 - (SUM(_missing_count)*1.0/COUNT(*)*40) - (SUM(_anomaly_score)*1.0/COUNT(*)*50) - (CASE WHEN COUNT(DISTINCT timestamp) < COUNT(*) THEN 10 ELSE 0 END), 1) >= 90 THEN 'A - Excellent'
+        WHEN ROUND(100 - (SUM(_missing_count)*1.0/COUNT(*)*40) - (SUM(_anomaly_score)*1.0/COUNT(*)*50) - (CASE WHEN COUNT(DISTINCT timestamp) < COUNT(*) THEN 10 ELSE 0 END), 1) >= 70 THEN 'B - Good'
+        WHEN ROUND(100 - (SUM(_missing_count)*1.0/COUNT(*)*40) - (SUM(_anomaly_score)*1.0/COUNT(*)*50) - (CASE WHEN COUNT(DISTINCT timestamp) < COUNT(*) THEN 10 ELSE 0 END), 1) >= 50 THEN 'C - Fair'
+        ELSE 'D - Poor'
+    END AS quality_tier,
+
+    ROW_NUMBER() OVER (ORDER BY
+        ROUND(100 - (SUM(_missing_count)*1.0/COUNT(*)*40) - (SUM(_anomaly_score)*1.0/COUNT(*)*50) - (CASE WHEN COUNT(DISTINCT timestamp) < COUNT(*) THEN 10 ELSE 0 END), 1) DESC
+    ) AS quality_rank,
+
+    NOW() AS generated_at
+
+FROM "gaung"."main"."data_iot_silver"
+
+
+  WHERE timestamp > (SELECT MAX(generated_at) FROM "gaung"."main"."iot_device_quality_rank")
+
+
+GROUP BY device_id
+ORDER BY dqi_score DESC
+    );
+  
+  
+  
+[0m20:48:09.264919 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m20:48:09.274993 [debug] [Thread-1 (]: SQL status: OK in 0.010 seconds
+[0m20:48:09.292620 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_quality_rank"
+[0m20:48:09.293616 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_quality_rank: BEGIN
+[0m20:48:09.294716 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m20:48:09.295557 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_quality_rank"
+[0m20:48:09.296409 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_quality_rank: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_device_quality_rank"} */
+
+      select
+          column_name,
+          data_type,
+          character_maximum_length,
+          numeric_precision,
+          numeric_scale
+
+      from system.information_schema.columns
+      where table_name = 'iot_device_quality_rank__dbt_tmp20260715204809243191'
+      
+      
+      order by ordinal_position
+
+  
+[0m20:48:09.314612 [debug] [Thread-1 (]: SQL status: OK in 0.017 seconds
+[0m20:48:09.330161 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_quality_rank"
+[0m20:48:09.331183 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_quality_rank: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_device_quality_rank"} */
+
+      select
+          column_name,
+          data_type,
+          character_maximum_length,
+          numeric_precision,
+          numeric_scale
+
+      from system.information_schema.columns
+      where table_name = 'iot_device_quality_rank'
+      
+      and lower(table_schema) = 'main'
+      
+      
+      and lower(table_catalog) = 'gaung'
+      
+      order by ordinal_position
+
+  
+[0m20:48:09.336715 [debug] [Thread-1 (]: SQL status: OK in 0.005 seconds
+[0m20:48:09.375276 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_quality_rank"
+[0m20:48:09.376328 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_quality_rank: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_device_quality_rank"} */
+
+      select
+          column_name,
+          data_type,
+          character_maximum_length,
+          numeric_precision,
+          numeric_scale
+
+      from system.information_schema.columns
+      where table_name = 'iot_device_quality_rank__dbt_tmp20260715204809243191'
+      
+      
+      order by ordinal_position
+
+  
+[0m20:48:09.381997 [debug] [Thread-1 (]: SQL status: OK in 0.005 seconds
+[0m20:48:09.393172 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_quality_rank"
+[0m20:48:09.394096 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_quality_rank: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_device_quality_rank"} */
+
+      select
+          column_name,
+          data_type,
+          character_maximum_length,
+          numeric_precision,
+          numeric_scale
+
+      from system.information_schema.columns
+      where table_name = 'iot_device_quality_rank'
+      
+      and lower(table_schema) = 'main'
+      
+      
+      and lower(table_catalog) = 'gaung'
+      
+      order by ordinal_position
+
+  
+[0m20:48:09.399188 [debug] [Thread-1 (]: SQL status: OK in 0.004 seconds
+[0m20:48:09.422217 [debug] [Thread-1 (]: 
+    In "gaung"."main"."iot_device_quality_rank":
+        Schema changed: False
+        Source columns not in target: []
+        Target columns not in source: []
+        New column types: []
+  
+[0m20:48:09.423399 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_quality_rank"
+[0m20:48:09.424326 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_quality_rank: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_device_quality_rank"} */
+SELECT version()
+[0m20:48:09.425784 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m20:48:09.450745 [debug] [Thread-1 (]: Writing runtime sql for node "model.gaung_silver.iot_device_quality_rank"
+[0m20:48:09.452003 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_quality_rank"
+[0m20:48:09.452921 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_quality_rank: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_device_quality_rank"} */
+
+        
+            delete from "gaung"."main"."iot_device_quality_rank"
+            where (
+                device_id) in (
+                select (device_id)
+                from "iot_device_quality_rank__dbt_tmp20260715204809243191"
+            );
+
+        
+    
+
+    insert into "gaung"."main"."iot_device_quality_rank" ("device_id", "total_readings", "avg_temperature", "avg_humidity", "total_missing", "total_anomalies", "dqi_score", "quality_tier", "quality_rank", "generated_at")
+    (
+        select "device_id", "total_readings", "avg_temperature", "avg_humidity", "total_missing", "total_anomalies", "dqi_score", "quality_tier", "quality_rank", "generated_at"
+        from "iot_device_quality_rank__dbt_tmp20260715204809243191"
+    )
+  
+[0m20:48:09.456031 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m20:48:09.462440 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_quality_rank: COMMIT
+[0m20:48:09.463341 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_quality_rank"
+[0m20:48:09.464210 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_quality_rank: COMMIT
+[0m20:48:09.465312 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m20:48:09.466938 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_quality_rank: Close
+[0m20:48:09.468280 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '202dad8b-ef42-4cae-833b-42c767c2875b', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7face3662350>]}
+[0m20:48:09.469607 [info ] [Thread-1 (]: 2 of 3 OK created sql incremental model main.iot_device_quality_rank ........... [[32mOK[0m in 0.30s]
+[0m20:48:09.471168 [debug] [Thread-1 (]: Finished running node model.gaung_silver.iot_device_quality_rank
+[0m20:48:09.472185 [debug] [Thread-1 (]: Began running node model.gaung_silver.iot_device_summary
+[0m20:48:09.473344 [info ] [Thread-1 (]: 3 of 3 START sql incremental model main.iot_device_summary ..................... [RUN]
+[0m20:48:09.474458 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly model.gaung_silver.iot_device_quality_rank, now model.gaung_silver.iot_device_summary)
+[0m20:48:09.475337 [debug] [Thread-1 (]: Began compiling node model.gaung_silver.iot_device_summary
+[0m20:48:09.482464 [debug] [Thread-1 (]: Writing injected SQL for node "model.gaung_silver.iot_device_summary"
+[0m20:48:09.483649 [debug] [Thread-1 (]: Began executing node model.gaung_silver.iot_device_summary
+[0m20:48:09.497211 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_summary"
+[0m20:48:09.498133 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_summary: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_device_summary"} */
+
+    
+  
+    
+    
+
+    create temporary table
+      "iot_device_summary__dbt_tmp20260715204809488165"
+  
+    as (
+      -- dbt/models/gold/iot_device_summary.sql
+-- Gold Layer: Device summary with anomaly flags
+-- Incremental: only processes new data
+
+
+
+SELECT
+    device_id,
+    COUNT(*) AS total_readings,
+    ROUND(AVG(temperature_c), 2) AS avg_temperature,
+    ROUND(AVG(humidity_pct), 2) AS avg_humidity,
+    ROUND(AVG(vibration_g), 4) AS avg_vibration,
+    ROUND(MIN(battery_v), 3) AS min_battery,
+    ROUND(MAX(battery_v), 3) AS max_battery,
+    SUM(_missing_count) AS total_missing,
+    SUM(_anomaly_score) AS total_anomalies,
+    MAX(timestamp) AS last_reading_at,
+    NOW() AS summary_generated_at,
+
+    -- Anomaly alert
+    CASE
+        WHEN AVG(temperature_c) > 200 THEN 'CRITICAL: temperature anomaly'
+        WHEN MAX(battery_v) > 10 THEN 'WARNING: battery anomaly'
+        WHEN SUM(_anomaly_score) > 5 THEN 'WARNING: multiple anomalies'
+        ELSE 'OK'
+    END AS alert_status
+
+FROM "gaung"."main"."data_iot_silver"
+
+
+  WHERE timestamp > (SELECT MAX(last_reading_at) FROM "gaung"."main"."iot_device_summary")
+
+
+GROUP BY device_id
+    );
+  
+  
+  
+[0m20:48:09.499085 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m20:48:09.503588 [debug] [Thread-1 (]: SQL status: OK in 0.004 seconds
+[0m20:48:09.517460 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_summary"
+[0m20:48:09.518392 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_summary: BEGIN
+[0m20:48:09.519560 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m20:48:09.520418 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_summary"
+[0m20:48:09.521357 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_summary: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_device_summary"} */
+
+      select
+          column_name,
+          data_type,
+          character_maximum_length,
+          numeric_precision,
+          numeric_scale
+
+      from system.information_schema.columns
+      where table_name = 'iot_device_summary__dbt_tmp20260715204809488165'
+      
+      
+      order by ordinal_position
+
+  
+[0m20:48:09.526732 [debug] [Thread-1 (]: SQL status: OK in 0.004 seconds
+[0m20:48:09.538408 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_summary"
+[0m20:48:09.539328 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_summary: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_device_summary"} */
+
+      select
+          column_name,
+          data_type,
+          character_maximum_length,
+          numeric_precision,
+          numeric_scale
+
+      from system.information_schema.columns
+      where table_name = 'iot_device_summary'
+      
+      and lower(table_schema) = 'main'
+      
+      
+      and lower(table_catalog) = 'gaung'
+      
+      order by ordinal_position
+
+  
+[0m20:48:09.544626 [debug] [Thread-1 (]: SQL status: OK in 0.004 seconds
+[0m20:48:09.556558 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_summary"
+[0m20:48:09.557548 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_summary: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_device_summary"} */
+
+      select
+          column_name,
+          data_type,
+          character_maximum_length,
+          numeric_precision,
+          numeric_scale
+
+      from system.information_schema.columns
+      where table_name = 'iot_device_summary__dbt_tmp20260715204809488165'
+      
+      
+      order by ordinal_position
+
+  
+[0m20:48:09.563020 [debug] [Thread-1 (]: SQL status: OK in 0.004 seconds
+[0m20:48:09.575956 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_summary"
+[0m20:48:09.576882 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_summary: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_device_summary"} */
+
+      select
+          column_name,
+          data_type,
+          character_maximum_length,
+          numeric_precision,
+          numeric_scale
+
+      from system.information_schema.columns
+      where table_name = 'iot_device_summary'
+      
+      and lower(table_schema) = 'main'
+      
+      
+      and lower(table_catalog) = 'gaung'
+      
+      order by ordinal_position
+
+  
+[0m20:48:09.582282 [debug] [Thread-1 (]: SQL status: OK in 0.004 seconds
+[0m20:48:09.592683 [debug] [Thread-1 (]: 
+    In "gaung"."main"."iot_device_summary":
+        Schema changed: False
+        Source columns not in target: []
+        Target columns not in source: []
+        New column types: []
+  
+[0m20:48:09.596011 [debug] [Thread-1 (]: Writing runtime sql for node "model.gaung_silver.iot_device_summary"
+[0m20:48:09.597440 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_summary"
+[0m20:48:09.598343 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_summary: /* {"app": "dbt", "dbt_version": "1.11.12", "profile_name": "gaung_silver", "target_name": "dev", "node_id": "model.gaung_silver.iot_device_summary"} */
+
+        
+            delete from "gaung"."main"."iot_device_summary"
+            where (
+                device_id) in (
+                select (device_id)
+                from "iot_device_summary__dbt_tmp20260715204809488165"
+            );
+
+        
+    
+
+    insert into "gaung"."main"."iot_device_summary" ("device_id", "total_readings", "avg_temperature", "avg_humidity", "avg_vibration", "min_battery", "max_battery", "total_missing", "total_anomalies", "last_reading_at", "summary_generated_at", "alert_status")
+    (
+        select "device_id", "total_readings", "avg_temperature", "avg_humidity", "avg_vibration", "min_battery", "max_battery", "total_missing", "total_anomalies", "last_reading_at", "summary_generated_at", "alert_status"
+        from "iot_device_summary__dbt_tmp20260715204809488165"
+    )
+  
+[0m20:48:09.601529 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m20:48:09.608610 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_summary: COMMIT
+[0m20:48:09.609485 [debug] [Thread-1 (]: Using duckdb connection "model.gaung_silver.iot_device_summary"
+[0m20:48:09.610338 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_summary: COMMIT
+[0m20:48:09.611468 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m20:48:09.613087 [debug] [Thread-1 (]: On model.gaung_silver.iot_device_summary: Close
+[0m20:48:09.614500 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '202dad8b-ef42-4cae-833b-42c767c2875b', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7face3662350>]}
+[0m20:48:09.615846 [info ] [Thread-1 (]: 3 of 3 OK created sql incremental model main.iot_device_summary ................ [[32mOK[0m in 0.14s]
+[0m20:48:09.617495 [debug] [Thread-1 (]: Finished running node model.gaung_silver.iot_device_summary
+[0m20:48:09.619370 [debug] [MainThread]: Using duckdb connection "master"
+[0m20:48:09.620267 [debug] [MainThread]: On master: BEGIN
+[0m20:48:09.621154 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m20:48:09.622361 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m20:48:09.623148 [debug] [MainThread]: On master: COMMIT
+[0m20:48:09.623942 [debug] [MainThread]: Using duckdb connection "master"
+[0m20:48:09.624700 [debug] [MainThread]: On master: COMMIT
+[0m20:48:09.625672 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m20:48:09.626535 [debug] [MainThread]: On master: Close
+[0m20:48:09.629082 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m20:48:09.629862 [debug] [MainThread]: Connection 'create_gaung_main' was properly closed.
+[0m20:48:09.630596 [debug] [MainThread]: Connection 'model.gaung_silver.iot_device_summary' was properly closed.
+[0m20:48:09.631517 [info ] [MainThread]: 
+[0m20:48:09.632450 [info ] [MainThread]: Finished running 2 incremental models, 1 view model in 0 hours 0 minutes and 0.97 seconds (0.97s).
+[0m20:48:09.634977 [debug] [MainThread]: Command end result
+[0m20:48:09.700288 [debug] [MainThread]: Wrote artifact WritableManifest to /home/ubuntu/gaung_v3/dbt/target/manifest.json
+[0m20:48:09.703436 [debug] [MainThread]: Wrote artifact SemanticManifest to /home/ubuntu/gaung_v3/dbt/target/semantic_manifest.json
+[0m20:48:09.715529 [debug] [MainThread]: Wrote artifact RunExecutionResult to /home/ubuntu/gaung_v3/dbt/target/run_results.json
+[0m20:48:09.716435 [info ] [MainThread]: 
+[0m20:48:09.717671 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m20:48:09.718581 [info ] [MainThread]: 
+[0m20:48:09.719548 [info ] [MainThread]: Done. PASS=3 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=3
+[0m20:48:09.721250 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": true, "command_wall_clock_time": 2.484428, "process_in_blocks": "0", "process_kernel_time": 0.20707, "process_mem_max_rss": "196328", "process_out_blocks": "2488", "process_user_time": 4.160326}
+[0m20:48:09.722272 [debug] [MainThread]: Command `dbt run` succeeded at 20:48:09.722084 after 2.49 seconds
+[0m20:48:09.723156 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7face9e09ed0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7faced14f040>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7face36889d0>]}
+[0m20:48:09.732163 [debug] [MainThread]: Flushing usage events
+[0m20:48:10.973635 [debug] [MainThread]: An error was encountered while trying to flush usage events
